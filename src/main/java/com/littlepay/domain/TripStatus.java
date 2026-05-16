@@ -4,5 +4,6 @@ package com.littlepay.domain;
 public enum TripStatus {
     COMPLETED,
     INCOMPLETE,
-    CANCELLED
+    CANCELLED,
+    UNMATCHED_OFF
 }
