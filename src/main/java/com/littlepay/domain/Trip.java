@@ -4,21 +4,24 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * A completed, incomplete, or cancelled trip derived from tap pairs.
+ * A completed, incomplete, cancelled, or unmatched-off trip derived from tap pairs.
  *
- * <p>{@code started} and {@code fromStop} are nullable for UNMATCHED_OFF audit rows
- * where no matching tap-on exists.
+ * <p>Nullable fields by status:
+ * <ul>
+ *   <li>UNMATCHED_OFF: {@code started} and {@code fromStop} are null (no tap-on)</li>
+ *   <li>INCOMPLETE: {@code finished} and {@code toStop} are null (no tap-off)</li>
+ * </ul>
  *
  * @param started       tap-on timestamp, or null for UNMATCHED_OFF
- * @param finished      tap-off timestamp
- * @param durationSecs  trip duration in seconds (0 if started is null)
+ * @param finished      tap-off timestamp, or null for INCOMPLETE
+ * @param durationSecs  trip duration in seconds (0 if no OFF tap)
  * @param fromStop      tap-on stop, or null for UNMATCHED_OFF
- * @param toStop        tap-off stop
+ * @param toStop        tap-off stop, or null for INCOMPLETE
  * @param chargeAmount  fare charged
  * @param companyId     operator company
  * @param busId         vehicle identifier
  * @param pan           payment account number
- * @param status        COMPLETED, INCOMPLETE, or CANCELLED
+ * @param status        COMPLETED, INCOMPLETE, CANCELLED, or UNMATCHED_OFF
  */
 public record Trip(
         LocalDateTime started,
@@ -33,13 +36,12 @@ public record Trip(
         TripStatus status
 ) {
     public Trip {
-        Objects.requireNonNull(finished, "finished");
-        Objects.requireNonNull(toStop, "toStop");
         Objects.requireNonNull(chargeAmount, "chargeAmount");
         Objects.requireNonNull(companyId, "companyId");
         Objects.requireNonNull(busId, "busId");
         Objects.requireNonNull(pan, "pan");
         Objects.requireNonNull(status, "status");
-        // started and fromStop may be null for UNMATCHED_OFF rows
+        // started/fromStop may be null for UNMATCHED_OFF rows
+        // finished/toStop may be null for INCOMPLETE rows
     }
 }

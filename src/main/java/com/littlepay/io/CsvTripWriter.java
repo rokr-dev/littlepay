@@ -22,7 +22,7 @@ import java.util.Locale;
  * <p>Header: {@code Started,Finished,DurationSecs,FromStopId,ToStopId,ChargeAmount,CompanyId,BusID,PAN,Status}
  * <p>Timestamps: {@code dd-MM-yyyy HH:mm:ss} at UTC, {@link Locale#ROOT}.
  * <p>Money: {@code Money.format()} → e.g. {@code $3.25}.
- * <p>Null {@code started} / {@code fromStop} (UNMATCHED_OFF rows) emit empty cells.
+ * <p>Null fields emit empty cells: {@code started}/{@code fromStop} for UNMATCHED_OFF; {@code finished}/{@code toStop} for INCOMPLETE.
  * <p>Parent directory created via {@link Files#createDirectories} if missing.
  * <p>Existing file overwritten; WARN logged.
  */
@@ -64,10 +64,12 @@ public final class CsvTripWriter implements TripWriter {
                         trip.started() != null
                                 ? TIMESTAMP_FMT.format(trip.started().atOffset(ZoneOffset.UTC))
                                 : "",
-                        TIMESTAMP_FMT.format(trip.finished().atOffset(ZoneOffset.UTC)),
+                        trip.finished() != null
+                                ? TIMESTAMP_FMT.format(trip.finished().atOffset(ZoneOffset.UTC))
+                                : "",
                         trip.durationSecs(),
                         trip.fromStop() != null ? trip.fromStop().value() : "",
-                        trip.toStop().value(),
+                        trip.toStop() != null ? trip.toStop().value() : "",
                         trip.chargeAmount().format(),
                         trip.companyId(),
                         trip.busId(),

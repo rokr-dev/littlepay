@@ -135,6 +135,9 @@ class StateMachineTripMatcherTest {
         // max fare from Stop1 is Stop1<->Stop3 = $7.30
         assertThat(trip.chargeAmount()).isEqualTo(FARE_1_3);
         assertThat(trip.fromStop()).isEqualTo(STOP1);
+        // passenger never tapped off — finished and toStop are null
+        assertThat(trip.finished()).isNull();
+        assertThat(trip.toStop()).isNull();
     }
 
     // ── 4. emits_unmatched_off_when_off_arrives_with_no_prior_on ─────────────
