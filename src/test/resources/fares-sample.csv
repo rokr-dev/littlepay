@@ -1,0 +1,4 @@
+FromStopId,ToStopId,Amount
+Stop1,Stop2,3.25
+Stop2,Stop3,5.50
+Stop1,Stop3,7.30
