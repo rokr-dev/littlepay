@@ -1,5 +1,6 @@
 package com.littlepay.matching;
 
+import com.littlepay.cli.CliArgs;
 import com.littlepay.domain.*;
 import com.littlepay.domain.Pan;
 import com.littlepay.pricing.FareTable;
@@ -30,16 +31,15 @@ import java.util.stream.Collectors;
 public class StateMachineTripMatcher implements TripMatcher {
 
     private static final Logger log = LoggerFactory.getLogger(StateMachineTripMatcher.class);
-    private static final long DEFAULT_DUPLICATE_WINDOW_SECS = 30L;
 
     private final FareTable fareTable;
-    private final long duplicateWindowSecs;
+    private final int duplicateWindowSecs;
 
     public StateMachineTripMatcher(FareTable fareTable) {
-        this(fareTable, DEFAULT_DUPLICATE_WINDOW_SECS);
+        this(fareTable, CliArgs.DEFAULT_DUPLICATE_WINDOW_SECONDS);
     }
 
-    public StateMachineTripMatcher(FareTable fareTable, long duplicateWindowSecs) {
+    public StateMachineTripMatcher(FareTable fareTable, int duplicateWindowSecs) {
         if (fareTable == null) throw new IllegalArgumentException("fareTable must not be null");
         this.fareTable = fareTable;
         this.duplicateWindowSecs = duplicateWindowSecs;
@@ -148,10 +148,10 @@ public class StateMachineTripMatcher implements TripMatcher {
         Money charge = fareTable.maxFareFrom(on.stopId());
         return new Trip(
                 on.dateTime(),
-                on.dateTime(), // finished = started for INCOMPLETE (no OFF)
+                null,           // finished is null — passenger never tapped off
                 0L,
                 on.stopId(),
-                on.stopId(), // toStop = fromStop for INCOMPLETE
+                null,           // toStop is null — no destination recorded
                 charge,
                 on.companyId(),
                 on.busId(),

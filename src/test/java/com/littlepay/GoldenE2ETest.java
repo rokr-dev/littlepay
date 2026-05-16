@@ -39,9 +39,8 @@ class GoldenE2ETest {
 
     private App buildApp(Path faresPath, Path tapsPath, Path outputPath) {
         FareTable fareTable = new FareTableLoader().load(faresPath);
-        StateMachineTripMatcher matcher = new StateMachineTripMatcher(fareTable, 30L);
-        return new App(new CsvTapReader(), matcher, new CsvTripWriter(),
-                fareTable, tapsPath, outputPath);
+        StateMachineTripMatcher matcher = new StateMachineTripMatcher(fareTable, 30);
+        return new App(new CsvTapReader(), matcher, new CsvTripWriter(), tapsPath, outputPath);
     }
 
     // ── tests ─────────────────────────────────────────────────────────────────
