@@ -14,7 +14,6 @@ import java.nio.file.Path;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * CSV adapter for {@link TripWriter}.
@@ -37,8 +36,7 @@ public final class CsvTripWriter implements TripWriter {
     };
 
     private static final DateTimeFormatter TIMESTAMP_FMT =
-            DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss", Locale.ROOT)
-                    .withZone(ZoneOffset.UTC);
+            CsvFormats.TIMESTAMP.withZone(ZoneOffset.UTC);
 
     @Override
     public void write(List<Trip> trips, Path path) throws IOException {

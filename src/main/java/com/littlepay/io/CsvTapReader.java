@@ -13,9 +13,9 @@ import org.apache.commons.csv.CSVRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,15 +41,11 @@ public final class CsvTapReader implements TapReader {
 
     private static final Logger LOG = LoggerFactory.getLogger(CsvTapReader.class);
 
-    private static final DateTimeFormatter TIMESTAMP_FMT =
-            DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss", Locale.ROOT);
+    private static final DateTimeFormatter TIMESTAMP_FMT = CsvFormats.TIMESTAMP;
 
     /** Expected column names — with the single space after comma as in the spec. */
     private static final List<String> EXPECTED_HEADERS =
             List.of("ID", "DateTimeUTC", "TapType", "StopId", "CompanyId", "BusID", "PAN");
-
-    /** UTF-8 BOM bytes: EF BB BF. */
-    private static final byte[] UTF8_BOM = {(byte) 0xEF, (byte) 0xBB, (byte) 0xBF};
 
     @Override
     public List<Tap> read(Path path) throws IOException {
@@ -57,11 +53,10 @@ public final class CsvTapReader implements TapReader {
             throw new InputFileException("Tap file not found or unreadable: " + path);
         }
 
-        byte[] raw = Files.readAllBytes(path);
-        byte[] stripped = stripBom(raw);
-        String content = new String(stripped, StandardCharsets.UTF_8);
-
-        return parse(new StringReader(content), path.toString());
+        try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+            CsvFormats.skipBomIfPresent(reader);
+            return parse(reader, path.toString());
+        }
     }
 
     // -----------------------------------------------------------------------
@@ -164,16 +159,4 @@ public final class CsvTapReader implements TapReader {
         return true;
     }
 
-    /** Strips a leading UTF-8 BOM (EF BB BF) if present. */
-    private byte[] stripBom(byte[] bytes) {
-        if (bytes.length >= 3
-                && bytes[0] == UTF8_BOM[0]
-                && bytes[1] == UTF8_BOM[1]
-                && bytes[2] == UTF8_BOM[2]) {
-            byte[] result = new byte[bytes.length - 3];
-            System.arraycopy(bytes, 3, result, 0, result.length);
-            return result;
-        }
-        return bytes;
-    }
 }
