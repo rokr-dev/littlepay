@@ -12,6 +12,8 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
@@ -40,6 +42,9 @@ public final class FareTableLoader {
     private static final List<String> EXPECTED_HEADERS =
             List.of("FromStopId", "ToStopId", "Amount");
 
+    /** Bundled classpath resource — shipped inside the JAR. */
+    static final String BUNDLED_RESOURCE = "/fares.csv";
+
     public FareTable load(Path path) {
         if (!Files.exists(path) || !Files.isReadable(path)) {
             throw new InputFileException("Fare file not found or unreadable: " + path);
@@ -49,6 +54,23 @@ public final class FareTableLoader {
             return parse(reader, path.toString());
         } catch (IOException e) {
             throw new InputFileException("Failed to read fare file: " + path, e);
+        }
+    }
+
+    /**
+     * Loads the bundled {@code fares.csv} from the JAR classpath.
+     * Used by {@link com.littlepay.Main} when {@code --fares} is not supplied.
+     */
+    public FareTable loadBundled() {
+        InputStream stream = FareTableLoader.class.getResourceAsStream(BUNDLED_RESOURCE);
+        if (stream == null) {
+            throw new FareTableException(
+                    "Bundled fares.csv not found in JAR — this is a packaging error");
+        }
+        try (Reader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
+            return parse(reader, "classpath:" + BUNDLED_RESOURCE);
+        } catch (IOException e) {
+            throw new FareTableException("Failed to read bundled fares.csv", e);
         }
     }
 

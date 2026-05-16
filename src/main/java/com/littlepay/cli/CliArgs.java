@@ -10,6 +10,6 @@ public record CliArgs(
         int duplicateWindowSeconds,
         boolean help
 ) {
-    static final String DEFAULT_FARES_PATH = "fares.csv";
+    public static final String DEFAULT_FARES_PATH = "fares.csv";
     static final int DEFAULT_DUPLICATE_WINDOW_SECONDS = 30;
 }
