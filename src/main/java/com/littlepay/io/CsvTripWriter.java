@@ -44,6 +44,7 @@ public final class CsvTripWriter implements TripWriter {
         CSVFormat format = CSVFormat.DEFAULT
                 .builder()
                 .setHeader(HEADER)
+                .setRecordSeparator("\n")
                 .build();
 
         try (Writer writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8);
