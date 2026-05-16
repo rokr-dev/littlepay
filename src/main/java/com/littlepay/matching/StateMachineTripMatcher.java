@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 public class StateMachineTripMatcher implements TripMatcher {
 
     private static final Logger log = LoggerFactory.getLogger(StateMachineTripMatcher.class);
+    private static final Money ZERO_AUD = Money.of(BigDecimal.ZERO, Currency.getInstance("AUD"));
 
     private final FareTable fareTable;
     private final int duplicateWindowSecs;
@@ -129,14 +130,13 @@ public class StateMachineTripMatcher implements TripMatcher {
 
     private Trip makeCancelled(Tap on, Tap off) {
         long durationSecs = ChronoUnit.SECONDS.between(on.dateTime(), off.dateTime());
-        Money zero = zeroDollars();
         return new Trip(
                 on.dateTime(),
                 off.dateTime(),
                 durationSecs,
                 on.stopId(),
                 off.stopId(),
-                zero,
+                ZERO_AUD,
                 on.companyId(),
                 on.busId(),
                 on.pan(),
@@ -167,16 +167,12 @@ public class StateMachineTripMatcher implements TripMatcher {
                 0L,
                 null,           // fromStop is null
                 off.stopId(),
-                zeroDollars(),
+                ZERO_AUD,
                 off.companyId(),
                 off.busId(),
                 off.pan(),
                 TripStatus.UNMATCHED_OFF
         );
-    }
-
-    private Money zeroDollars() {
-        return Money.of(BigDecimal.ZERO, Currency.getInstance("AUD"));
     }
 
     // ── Bucket key ───────────────────────────────────────────────────────────
