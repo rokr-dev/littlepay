@@ -2,7 +2,7 @@ package com.littlepay;
 
 import com.littlepay.cli.Cli;
 import com.littlepay.cli.CliArgs;
-import com.littlepay.cli.CliUsageException;
+import com.littlepay.exceptions.CliUsageException;
 import com.littlepay.exceptions.LittlepayException;
 import com.littlepay.io.CsvTapReader;
 import com.littlepay.io.CsvTripWriter;
@@ -30,9 +30,8 @@ public class Main {
         try {
             cliArgs = Cli.parse(args);
         } catch (CliUsageException e) {
-            // Print usage error to stderr and return; the JVM exits naturally (code 0).
-            // Callers needing a strict exit code 2 should inspect stderr output.
             System.err.println(e.getMessage());
+            System.exit(e.getExitCode()); // exit code 2
             return;
         }
 
@@ -59,7 +58,6 @@ public class Main {
                     new CsvTapReader(),
                     matcher,
                     new CsvTripWriter(),
-                    fareTable,
                     Path.of(cliArgs.inputPath()),
                     Path.of(cliArgs.outputPath())
             );

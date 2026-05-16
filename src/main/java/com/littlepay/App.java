@@ -1,12 +1,11 @@
 package com.littlepay;
 
+import com.littlepay.domain.Tap;
 import com.littlepay.domain.Trip;
 import com.littlepay.domain.TripStatus;
 import com.littlepay.io.TapReader;
 import com.littlepay.io.TripWriter;
 import com.littlepay.matching.TripMatcher;
-import com.littlepay.pricing.FareTable;
-import com.littlepay.domain.Tap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,21 +25,17 @@ public class App {
     private final TapReader tapReader;
     private final TripMatcher tripMatcher;
     private final TripWriter tripWriter;
-    @SuppressWarnings("unused")
-    private final FareTable fareTable;
     private final Path inputPath;
     private final Path outputPath;
 
     public App(TapReader tapReader,
                TripMatcher tripMatcher,
                TripWriter tripWriter,
-               FareTable fareTable,
                Path inputPath,
                Path outputPath) {
         this.tapReader   = tapReader;
         this.tripMatcher = tripMatcher;
         this.tripWriter  = tripWriter;
-        this.fareTable   = fareTable;
         this.inputPath   = inputPath;
         this.outputPath  = outputPath;
     }
@@ -60,10 +55,10 @@ public class App {
 
         List<Trip> trips = tripMatcher.match(taps);
 
-        // Sort: Started asc (UNMATCHED_OFF nulls first), then Finished asc
+        // Sort: Started asc (nulls first), then Finished asc (nulls first for INCOMPLETE)
         Comparator<Trip> order = Comparator
                 .<Trip, LocalDateTime>comparing(Trip::started, Comparator.nullsFirst(Comparator.naturalOrder()))
-                .thenComparing(Trip::finished);
+                .thenComparing(Trip::finished, Comparator.nullsFirst(Comparator.naturalOrder()));
 
         List<Trip> sorted = trips.stream().sorted(order).toList();
 
