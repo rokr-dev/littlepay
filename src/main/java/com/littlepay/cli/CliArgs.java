@@ -11,5 +11,5 @@ public record CliArgs(
         boolean help
 ) {
     public static final String DEFAULT_FARES_PATH = "fares.csv";
-    static final int DEFAULT_DUPLICATE_WINDOW_SECONDS = 30;
+    public static final int DEFAULT_DUPLICATE_WINDOW_SECONDS = 30;
 }
