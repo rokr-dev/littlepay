@@ -1,5 +1,7 @@
 package com.littlepay.cli;
 
+import com.littlepay.exceptions.CliUsageException;
+
 /**
  * Hand-rolled CLI argument parser. No third-party CLI library.
  *

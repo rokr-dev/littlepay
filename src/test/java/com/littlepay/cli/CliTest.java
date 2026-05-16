@@ -1,5 +1,6 @@
 package com.littlepay.cli;
 
+import com.littlepay.exceptions.CliUsageException;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;

@@ -1,9 +1,11 @@
 package com.littlepay.cli;
 
 /**
- * Thrown when the CLI arguments are invalid or missing. Caller should print usage to stderr and exit 2.
+ * @deprecated Moved to {@link com.littlepay.exceptions.CliUsageException}.
+ * This alias exists only for source-level backward compatibility during migration.
  */
-public class CliUsageException extends RuntimeException {
+@Deprecated
+public class CliUsageException extends com.littlepay.exceptions.CliUsageException {
     public CliUsageException(String message) {
         super(message);
     }
