@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
@@ -45,7 +46,12 @@ public class Main {
                 cliArgs.duplicateWindowSeconds());
 
         try {
-            FareTable fareTable = new FareTableLoader().load(Path.of(cliArgs.faresPath()));
+            FareTableLoader fareTableLoader = new FareTableLoader();
+            Path faresPath = Path.of(cliArgs.faresPath());
+            boolean isDefaultFares = CliArgs.DEFAULT_FARES_PATH.equals(cliArgs.faresPath());
+            FareTable fareTable = (isDefaultFares && !Files.exists(faresPath))
+                    ? fareTableLoader.loadBundled()
+                    : fareTableLoader.load(faresPath);
             StateMachineTripMatcher matcher =
                     new StateMachineTripMatcher(fareTable, cliArgs.duplicateWindowSeconds());
             App app = new App(
