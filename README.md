@@ -10,6 +10,8 @@ Reads a CSV of transit tap events, pairs ON/OFF taps into priced trips, and writ
 java --version   # should report 21.x
 ```
 
+The repo includes a `.tool-versions` file pinning Java 21 (adoptopenjdk-21.0.10+7.0.LTS) for [asdf](https://asdf-vm.com/) users. Run `asdf install` from the repo root to install the pinned version, then `asdf current java` to verify. Non-asdf users: install any Java 21 distribution (Temurin, OpenJDK, Zulu, etc.).
+
 No other runtime dependencies are required. The fat JAR bundles all libraries.
 
 ## Build
