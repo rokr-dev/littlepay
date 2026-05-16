@@ -11,6 +11,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Currency;
@@ -136,5 +137,26 @@ class FareTableLoaderTest {
         assertThatThrownBy(() -> loadCsv(csv))
                 .isInstanceOf(FareTableException.class)
                 .hasMessageContaining("325");
+    }
+
+    @Test
+    @DisplayName("loader_strips_utf8_bom_from_fares_csv")
+    void loader_strips_utf8_bom_from_fares_csv() throws IOException {
+        // arrange — prepend UTF-8 BOM (EF BB BF) to a valid fares CSV
+        byte[] bom = {(byte) 0xEF, (byte) 0xBB, (byte) 0xBF};
+        byte[] csv = "FromStopId,ToStopId,Amount\nStop1,Stop2,3.25\n".getBytes(StandardCharsets.UTF_8);
+        byte[] content = new byte[bom.length + csv.length];
+        System.arraycopy(bom, 0, content, 0, bom.length);
+        System.arraycopy(csv, 0, content, bom.length, csv.length);
+
+        Path file = tempDir.resolve("fares-bom.csv");
+        Files.write(file, content);
+
+        // act
+        FareTable table = new FareTableLoader().load(file);
+
+        // assert — header parsed correctly despite BOM
+        Money fare = table.fareFor(new StopPair(new StopId("Stop1"), new StopId("Stop2")));
+        assertThat(fare).isEqualTo(Money.of(new BigDecimal("3.25"), AUD));
     }
 }

@@ -11,6 +11,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -50,7 +51,8 @@ public final class FareTableLoader {
             throw new InputFileException("Fare file not found or unreadable: " + path);
         }
 
-        try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+        try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+            CsvFormats.skipBomIfPresent(reader);
             return parse(reader, path.toString());
         } catch (IOException e) {
             throw new InputFileException("Failed to read fare file: " + path, e);
