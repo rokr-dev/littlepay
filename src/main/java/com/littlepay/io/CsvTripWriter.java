@@ -3,8 +3,6 @@ package com.littlepay.io;
 import com.littlepay.domain.Trip;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -23,11 +21,9 @@ import java.util.List;
  * <p>Money: {@code Money.format()} → e.g. {@code $3.25}.
  * <p>Null fields emit empty cells: {@code started}/{@code fromStop} for UNMATCHED_OFF; {@code finished}/{@code toStop} for INCOMPLETE.
  * <p>Parent directory created via {@link Files#createDirectories} if missing.
- * <p>Existing file overwritten; WARN logged.
+ * <p>Existing file silently overwritten.
  */
 public final class CsvTripWriter implements TripWriter {
-
-    private static final Logger log = LoggerFactory.getLogger(CsvTripWriter.class);
 
     static final String[] HEADER = {
             "Started", "Finished", "DurationSecs",
@@ -43,10 +39,6 @@ public final class CsvTripWriter implements TripWriter {
         Path parent = path.getParent();
         if (parent != null) {
             Files.createDirectories(parent);
-        }
-
-        if (Files.exists(path)) {
-            log.warn("Output file already exists and will be overwritten: {}", path);
         }
 
         CSVFormat format = CSVFormat.DEFAULT

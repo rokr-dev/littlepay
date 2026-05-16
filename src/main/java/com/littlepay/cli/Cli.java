@@ -53,7 +53,14 @@ public class Cli {
                 faresPath = args[i];
             } else if ("--duplicate-window-seconds".equals(arg)) {
                 i++;
-                duplicateWindowSeconds = Integer.parseInt(args[i]);
+                String windowVal = args[i];
+                try {
+                    duplicateWindowSeconds = Integer.parseInt(windowVal);
+                } catch (NumberFormatException e) {
+                    System.err.println(USAGE);
+                    throw new CliUsageException(
+                            "--duplicate-window-seconds requires an integer, got: '" + windowVal + "'");
+                }
             } else if (arg.startsWith("-")) {
                 // unknown flag — ignore for now
             } else if (inputPath == null) {

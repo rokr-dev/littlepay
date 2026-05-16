@@ -39,7 +39,7 @@ import java.util.Set;
  */
 public final class CsvTapReader implements TapReader {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CsvTapReader.class);
+    private static final Logger log = LoggerFactory.getLogger(CsvTapReader.class);
 
     private static final DateTimeFormatter TIMESTAMP_FMT = CsvFormats.TIMESTAMP;
 
@@ -49,13 +49,11 @@ public final class CsvTapReader implements TapReader {
 
     @Override
     public List<Tap> read(Path path) throws IOException {
-        if (!Files.exists(path) || !Files.isReadable(path)) {
-            throw new InputFileException("Tap file not found or unreadable: " + path);
-        }
-
         try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
             CsvFormats.skipBomIfPresent(reader);
             return parse(reader, path.toString());
+        } catch (IOException e) {
+            throw new InputFileException("Tap file not found or unreadable: " + path, e);
         }
     }
 
@@ -81,7 +79,7 @@ public final class CsvTapReader implements TapReader {
             for (CSVRecord record : parser) {
                 // Guard for any blank record slipping through
                 if (isBlankRecord(record)) {
-                    LOG.debug("Skipping blank line at record {} in {}", record.getRecordNumber(), sourceName);
+                    log.debug("Skipping blank line at record {} in {}", record.getRecordNumber(), sourceName);
                     continue;
                 }
 

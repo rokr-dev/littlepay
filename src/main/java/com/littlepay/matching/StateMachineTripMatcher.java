@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  *   </li>
  * </ol>
  */
-public class StateMachineTripMatcher implements TripMatcher {
+public final class StateMachineTripMatcher implements TripMatcher {
 
     private static final Logger log = LoggerFactory.getLogger(StateMachineTripMatcher.class);
     private static final Money ZERO_AUD = Money.of(BigDecimal.ZERO, Currency.getInstance("AUD"));

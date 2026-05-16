@@ -28,8 +28,7 @@ public final class FareTableImpl implements FareTable {
         Money fare = fares.get(pair);
         if (fare == null) {
             throw new FareTableException(
-                    "No fare for stop pair: " + pair.first().value() + " <-> " + pair.second().value()
-                            + " — unknown stop in pair: " + pair.first().value() + " or " + pair.second().value());
+                    "No fare for stop pair: " + pair.first().value() + " <-> " + pair.second().value());
         }
         return fare;
     }

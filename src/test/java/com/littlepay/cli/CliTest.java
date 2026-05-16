@@ -48,6 +48,13 @@ class CliTest {
     }
 
     @Test
+    void invalid_duplicate_window_throws_usage_exception() {
+        assertThatThrownBy(() -> Cli.parse(new String[]{"in.csv", "out.csv", "--duplicate-window-seconds", "abc"}))
+                .isInstanceOf(CliUsageException.class)
+                .hasMessageContaining("abc");
+    }
+
+    @Test
     void no_arguments_prints_usage_to_stderr_and_exits_two() {
         ByteArrayOutputStream err = new ByteArrayOutputStream();
         PrintStream savedErr = System.err;
