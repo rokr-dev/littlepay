@@ -1,7 +1,5 @@
 package com.littlepay.domain;
 
-import com.littlepay.domain.pan.Pan;
-
 import java.time.LocalDateTime;
 import java.util.Objects;
 

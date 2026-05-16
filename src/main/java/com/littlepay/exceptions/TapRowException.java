@@ -1,4 +1,4 @@
-package com.littlepay;
+package com.littlepay.exceptions;
 
 /**
  * Thrown when a tap CSV row is malformed, has a bad timestamp, unknown TapType,

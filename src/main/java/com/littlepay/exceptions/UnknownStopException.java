@@ -1,4 +1,4 @@
-package com.littlepay;
+package com.littlepay.exceptions;
 
 /**
  * Thrown when a tap references a StopId not present in the fare table. Exit code 5.

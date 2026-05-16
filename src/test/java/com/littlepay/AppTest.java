@@ -1,5 +1,8 @@
 package com.littlepay;
 
+import com.littlepay.exceptions.FareTableException;
+import com.littlepay.exceptions.InputFileException;
+import com.littlepay.exceptions.LittlepayException;
 import com.littlepay.io.CsvTapReader;
 import com.littlepay.io.CsvTripWriter;
 import com.littlepay.io.FareTableLoader;

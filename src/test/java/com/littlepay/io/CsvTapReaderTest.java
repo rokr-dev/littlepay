@@ -1,7 +1,7 @@
 package com.littlepay.io;
 
-import com.littlepay.TapHeaderException;
-import com.littlepay.TapRowException;
+import com.littlepay.exceptions.TapHeaderException;
+import com.littlepay.exceptions.TapRowException;
 import com.littlepay.domain.Tap;
 import com.littlepay.domain.TapType;
 import org.junit.jupiter.api.DisplayName;

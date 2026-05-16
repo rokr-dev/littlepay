@@ -1,7 +1,7 @@
 package com.littlepay.io;
 
-import com.littlepay.FareTableException;
-import com.littlepay.InputFileException;
+import com.littlepay.exceptions.FareTableException;
+import com.littlepay.exceptions.InputFileException;
 import com.littlepay.domain.Money;
 import com.littlepay.domain.StopId;
 import com.littlepay.domain.StopPair;

@@ -1,7 +1,7 @@
 package com.littlepay.matching;
 
 import com.littlepay.domain.*;
-import com.littlepay.domain.pan.Pan;
+import com.littlepay.domain.Pan;
 import com.littlepay.pricing.FareTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

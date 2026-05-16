@@ -1,6 +1,4 @@
-package com.littlepay.domain.pan;
-
-import java.util.Objects;
+package com.littlepay.domain;
 
 /**
  * Payment Account Number. {@link #masked()} always returns exactly 8 chars

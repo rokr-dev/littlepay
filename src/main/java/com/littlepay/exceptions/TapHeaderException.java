@@ -1,4 +1,4 @@
-package com.littlepay;
+package com.littlepay.exceptions;
 
 /**
  * Thrown when the tap CSV header does not match the expected schema. Exit code 3.

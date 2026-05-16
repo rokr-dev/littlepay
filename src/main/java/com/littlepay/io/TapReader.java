@@ -1,6 +1,9 @@
 package com.littlepay.io;
 
 import com.littlepay.domain.Tap;
+import com.littlepay.exceptions.InputFileException;
+import com.littlepay.exceptions.TapHeaderException;
+import com.littlepay.exceptions.TapRowException;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -16,9 +19,9 @@ public interface TapReader {
      *
      * @param path path to the CSV file
      * @return immutable list of taps in file order
-     * @throws com.littlepay.TapHeaderException if the CSV header does not match the expected schema
-     * @throws com.littlepay.TapRowException    if any row is malformed
-     * @throws com.littlepay.InputFileException  if the file is missing or unreadable
+     * @throws TapHeaderException if the CSV header does not match the expected schema
+     * @throws TapRowException    if any row is malformed
+     * @throws InputFileException  if the file is missing or unreadable
      * @throws IOException                       on unexpected I/O errors
      */
     List<Tap> read(Path path) throws IOException;

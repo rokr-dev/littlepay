@@ -1,4 +1,4 @@
-package com.littlepay;
+package com.littlepay.exceptions;
 
 /**
  * Base exception for all fail-fast errors in the Littlepay tool.

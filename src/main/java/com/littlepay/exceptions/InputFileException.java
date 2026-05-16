@@ -1,4 +1,4 @@
-package com.littlepay;
+package com.littlepay.exceptions;
 
 /**
  * Thrown when an input or fare file is missing or unreadable. Exit code 2.

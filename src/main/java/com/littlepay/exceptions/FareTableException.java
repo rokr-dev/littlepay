@@ -1,4 +1,4 @@
-package com.littlepay;
+package com.littlepay.exceptions;
 
 /**
  * Thrown when fare table CSV fails validation (bad header, invalid amount,

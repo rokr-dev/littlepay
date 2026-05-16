@@ -1,5 +1,6 @@
 package com.littlepay.domain.pan;
 
+import com.littlepay.domain.Pan;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

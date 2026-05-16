@@ -4,7 +4,7 @@ import com.littlepay.domain.Money;
 import com.littlepay.domain.StopId;
 import com.littlepay.domain.Trip;
 import com.littlepay.domain.TripStatus;
-import com.littlepay.domain.pan.Pan;
+import com.littlepay.domain.Pan;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;

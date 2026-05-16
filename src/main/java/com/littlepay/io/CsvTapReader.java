@@ -1,12 +1,12 @@
 package com.littlepay.io;
 
-import com.littlepay.InputFileException;
-import com.littlepay.TapHeaderException;
-import com.littlepay.TapRowException;
+import com.littlepay.exceptions.InputFileException;
+import com.littlepay.exceptions.TapHeaderException;
+import com.littlepay.exceptions.TapRowException;
 import com.littlepay.domain.StopId;
 import com.littlepay.domain.Tap;
 import com.littlepay.domain.TapType;
-import com.littlepay.domain.pan.Pan;
+import com.littlepay.domain.Pan;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;

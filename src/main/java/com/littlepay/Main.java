@@ -3,6 +3,7 @@ package com.littlepay;
 import com.littlepay.cli.Cli;
 import com.littlepay.cli.CliArgs;
 import com.littlepay.cli.CliUsageException;
+import com.littlepay.exceptions.LittlepayException;
 import com.littlepay.io.CsvTapReader;
 import com.littlepay.io.CsvTripWriter;
 import com.littlepay.io.FareTableLoader;
