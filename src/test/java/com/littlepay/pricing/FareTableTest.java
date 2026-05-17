@@ -1,21 +1,20 @@
 package com.littlepay.pricing;
 
-import com.littlepay.exceptions.FareTableException;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import com.littlepay.domain.Money;
 import com.littlepay.domain.StopId;
 import com.littlepay.domain.StopPair;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-
+import com.littlepay.exceptions.FareTableException;
 import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("FareTable")
 class FareTableTest {
@@ -47,7 +46,7 @@ class FareTableTest {
 
         @Test
         @DisplayName("charges_completed_trip_per_fare_table")
-        void charges_completed_trip_per_fare_table() {
+        void chargesCompletedTripPerFareTable() {
             // arrange
             StopPair pair = new StopPair(STOP1, STOP2);
             // act
@@ -58,7 +57,7 @@ class FareTableTest {
 
         @Test
         @DisplayName("treats_fare_pair_as_unordered")
-        void treats_fare_pair_as_unordered() {
+        void treatsFarePairAsUnordered() {
             // arrange - reversed order of stops
             StopPair pair = new StopPair(STOP2, STOP1);
             // act
@@ -69,7 +68,7 @@ class FareTableTest {
 
         @Test
         @DisplayName("throws_unknown_stop_when_pair_not_in_table")
-        void throws_unknown_stop_when_pair_not_in_table() {
+        void throwsUnknownStopWhenPairNotInTable() {
             // arrange
             StopId unknown = new StopId("StopX");
             StopPair pair = new StopPair(STOP1, unknown);
@@ -86,7 +85,7 @@ class FareTableTest {
 
         @Test
         @DisplayName("max_fare_from_origin_stop_returns_largest_touching_fare")
-        void max_fare_from_origin_stop_returns_largest_touching_fare() {
+        void maxFareFromOriginStopReturnsLargestTouchingFare() {
             // arrange - Stop1 touches Stop2 ($3.25) and Stop3 ($7.30); max is $7.30
             // act
             Money result = fareTable.maxFareFrom(STOP1);
@@ -96,7 +95,7 @@ class FareTableTest {
 
         @Test
         @DisplayName("max_fare_from_stop2_returns_largest_touching_fare")
-        void max_fare_from_stop2_returns_largest_touching_fare() {
+        void maxFareFromStop2ReturnsLargestTouchingFare() {
             // Stop2 touches Stop1 ($3.25) and Stop3 ($5.50); max is $5.50
             Money result = fareTable.maxFareFrom(STOP2);
             assertThat(result).isEqualTo(FARE_2_3);
@@ -104,7 +103,7 @@ class FareTableTest {
 
         @Test
         @DisplayName("max_fare_from_stop_with_single_route_returns_that_fare")
-        void max_fare_from_stop_with_single_route_returns_that_fare() {
+        void maxFareFromStopWithSingleRouteReturnsThatFare() {
             // Stop3 touches Stop2 ($5.50) and Stop1 ($7.30); max is $7.30
             Money result = fareTable.maxFareFrom(STOP3);
             assertThat(result).isEqualTo(FARE_1_3);

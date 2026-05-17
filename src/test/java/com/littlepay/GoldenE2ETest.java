@@ -1,21 +1,20 @@
 package com.littlepay;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.littlepay.io.CsvTapReader;
 import com.littlepay.io.CsvTripWriter;
 import com.littlepay.io.FareTableLoader;
 import com.littlepay.matching.StateMachineTripMatcher;
 import com.littlepay.pricing.FareTable;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Golden end-to-end test: runs App against the verbatim spec sample input and
@@ -46,7 +45,7 @@ class GoldenE2ETest {
     // ── tests ─────────────────────────────────────────────────────────────────
 
     @Test
-    void sample_input_produces_expected_output_line_by_line() throws IOException, URISyntaxException {
+    void sampleInputProducesExpectedOutputLineByLine() throws IOException, URISyntaxException {
         // arrange
         Path taps     = resource("taps-sample.csv");
         Path expected = resource("trips-sample-expected.csv");
@@ -72,7 +71,7 @@ class GoldenE2ETest {
     }
 
     @Test
-    void examples_copies_match_test_resources() throws IOException, URISyntaxException {
+    void examplesCopiesMatchTestResources() throws IOException, URISyntaxException {
         // arrange — Gradle sets CWD to projectDir during test execution
         Path projectRoot = Path.of("").toAbsolutePath();
 
@@ -95,7 +94,8 @@ class GoldenE2ETest {
                 .isEqualTo(Files.readAllBytes(testTaps));
 
         assertThat(Files.readAllBytes(examplesExpected))
-                .as("examples/trips-sample-expected.csv must be byte-identical to src/test/resources/trips-sample-expected.csv")
+                .as("examples/trips-sample-expected.csv must be byte-identical"
+                        + " to src/test/resources/trips-sample-expected.csv")
                 .isEqualTo(Files.readAllBytes(testExpected));
     }
 }

@@ -1,16 +1,12 @@
 package com.littlepay.io;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.littlepay.domain.Money;
+import com.littlepay.domain.Pan;
 import com.littlepay.domain.StopId;
 import com.littlepay.domain.Trip;
 import com.littlepay.domain.TripStatus;
-import com.littlepay.domain.Pan;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
 import java.io.IOException;
 import java.io.Reader;
 import java.math.BigDecimal;
@@ -20,8 +16,11 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Currency;
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class CsvTripWriterTest {
 
@@ -61,7 +60,7 @@ class CsvTripWriterTest {
     }
 
     @Test
-    void emits_expected_header_row(@TempDir Path tmp) throws IOException {
+    void emitsExpectedHeaderRow(@TempDir Path tmp) throws IOException {
         Path out = tmp.resolve("trips.csv");
         TripWriter writer = new CsvTripWriter();
 
@@ -73,7 +72,7 @@ class CsvTripWriterTest {
     }
 
     @Test
-    void unmatched_off_row_emits_empty_started_and_from_stop_cells(@TempDir Path tmp) throws IOException {
+    void unmatchedOffRowEmitsEmptyStartedAndFromStopCells(@TempDir Path tmp) throws IOException {
         Path out = tmp.resolve("trips.csv");
         TripWriter writer = new CsvTripWriter();
 
@@ -94,7 +93,7 @@ class CsvTripWriterTest {
     }
 
     @Test
-    void round_trip_write_then_read_produces_equivalent_trips(@TempDir Path tmp) throws IOException {
+    void roundTripWriteThenReadProducesEquivalentTrips(@TempDir Path tmp) throws IOException {
         Path out = tmp.resolve("trips.csv");
         TripWriter writer = new CsvTripWriter();
         Trip original = completedTrip();
@@ -121,7 +120,7 @@ class CsvTripWriterTest {
     }
 
     @Test
-    void creates_output_directory_when_missing(@TempDir Path tmp) throws IOException {
+    void createsOutputDirectoryWhenMissing(@TempDir Path tmp) throws IOException {
         Path nested = tmp.resolve("deep").resolve("nested").resolve("trips.csv");
         TripWriter writer = new CsvTripWriter();
 
@@ -133,7 +132,7 @@ class CsvTripWriterTest {
     }
 
     @Test
-    void overwrites_existing_output_file_and_logs_warn(@TempDir Path tmp) throws IOException {
+    void overwritesExistingOutputFileAndLogsWarn(@TempDir Path tmp) throws IOException {
         Path out = tmp.resolve("trips.csv");
         // Write stale content first
         Files.writeString(out, "stale content\n");

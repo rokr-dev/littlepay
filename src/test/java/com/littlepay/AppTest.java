@@ -1,5 +1,8 @@
 package com.littlepay;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import com.littlepay.exceptions.FareTableException;
 import com.littlepay.exceptions.InputFileException;
 import com.littlepay.exceptions.LittlepayException;
@@ -8,16 +11,12 @@ import com.littlepay.io.CsvTripWriter;
 import com.littlepay.io.FareTableLoader;
 import com.littlepay.matching.StateMachineTripMatcher;
 import com.littlepay.pricing.FareTable;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class AppTest {
 
@@ -29,7 +28,9 @@ class AppTest {
     private Path writeFares(String... rows) throws IOException {
         Path p = tempDir.resolve("fares.csv");
         StringBuilder sb = new StringBuilder("FromStopId,ToStopId,Amount\n");
-        for (String row : rows) sb.append(row).append("\n");
+        for (String row : rows) {
+            sb.append(row).append("\n");
+        }
         Files.writeString(p, sb.toString());
         return p;
     }
@@ -38,7 +39,9 @@ class AppTest {
         Path p = tempDir.resolve("taps.csv");
         StringBuilder sb = new StringBuilder(
                 "ID, DateTimeUTC, TapType, StopId, CompanyId, BusID, PAN\n");
-        for (String row : dataRows) sb.append(row).append("\n");
+        for (String row : dataRows) {
+            sb.append(row).append("\n");
+        }
         Files.writeString(p, sb.toString());
         return p;
     }
@@ -56,7 +59,7 @@ class AppTest {
     // ── tests ────────────────────────────────────────────────────────────────
 
     @Test
-    void runs_pipeline_end_to_end_against_temp_csv_files() throws IOException {
+    void runsPipelineEndToEndAgainstTempCsvFiles() throws IOException {
         // arrange
         Path fares = writeFares("Stop1,Stop2,3.25");
         Path taps  = writeTaps(
@@ -77,7 +80,7 @@ class AppTest {
     }
 
     @Test
-    void empty_input_writes_header_only_output() throws IOException {
+    void emptyInputWritesHeaderOnlyOutput() throws IOException {
         // arrange
         Path fares = writeFares("Stop1,Stop2,3.25");
         Path taps  = writeTaps(/* no data rows */);
@@ -93,7 +96,7 @@ class AppTest {
     }
 
     @Test
-    void unknown_stop_id_in_tap_data_exits_with_code_five() throws IOException {
+    void unknownStopIdInTapDataExitsWithCodeFive() throws IOException {
         // arrange — tap ON at StopXXX not in fare table;
         // INCOMPLETE triggers maxFareFrom(StopXXX) → FareTableException (exit 6).
         // UnknownStopException (exit 5) is declared but not thrown by FareTableImpl;
@@ -112,7 +115,7 @@ class AppTest {
     }
 
     @Test
-    void missing_input_file_exits_with_code_two() {
+    void missingInputFileExitsWithCodeTwo() {
         // arrange
         Path fares = tempDir.resolve("fares_missing.csv");
         // write a dummy fares file so FareTableLoader succeeds; input is missing
@@ -133,7 +136,7 @@ class AppTest {
     }
 
     @Test
-    void output_rows_sorted_deterministically() throws IOException {
+    void outputRowsSortedDeterministically() throws IOException {
         // arrange — two trips: later-starting trip listed first in taps, expect sorted by Started asc
         Path fares = writeFares("Stop1,Stop2,3.25", "Stop2,Stop3,5.50");
         Path taps  = writeTaps(

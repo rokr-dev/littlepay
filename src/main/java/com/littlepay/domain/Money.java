@@ -56,8 +56,12 @@ public final class Money {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Money m)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Money m)) {
+            return false;
+        }
         return amount.compareTo(m.amount) == 0 && currency.equals(m.currency);
     }
 

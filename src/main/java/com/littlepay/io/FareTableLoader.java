@@ -1,16 +1,12 @@
 package com.littlepay.io;
 
-import com.littlepay.exceptions.FareTableException;
-import com.littlepay.exceptions.InputFileException;
 import com.littlepay.domain.Money;
 import com.littlepay.domain.StopId;
 import com.littlepay.domain.StopPair;
+import com.littlepay.exceptions.FareTableException;
+import com.littlepay.exceptions.InputFileException;
 import com.littlepay.pricing.FareTable;
 import com.littlepay.pricing.FareTableImpl;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +21,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 
 /**
  * Loads and strictly validates a fare CSV file into a {@link FareTable}.

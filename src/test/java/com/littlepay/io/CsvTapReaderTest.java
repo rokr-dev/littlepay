@@ -1,22 +1,21 @@
 package com.littlepay.io;
 
-import com.littlepay.exceptions.TapHeaderException;
-import com.littlepay.exceptions.TapRowException;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import com.littlepay.domain.Tap;
 import com.littlepay.domain.TapType;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
+import com.littlepay.exceptions.TapHeaderException;
+import com.littlepay.exceptions.TapRowException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 @DisplayName("CsvTapReader")
 class CsvTapReaderTest {
@@ -44,7 +43,7 @@ class CsvTapReaderTest {
 
     @Test
     @DisplayName("input_with_utf8_bom_is_accepted_and_header_validated_after_strip")
-    void input_with_utf8_bom_is_accepted_and_header_validated_after_strip() throws IOException {
+    void inputWithUtf8BomIsAcceptedAndHeaderValidatedAfterStrip() throws IOException {
         // arrange — BOM file written by build (binary resource)
         Path file = resourceFile("taps-bom.csv");
         // act
@@ -57,7 +56,7 @@ class CsvTapReaderTest {
 
     @Test
     @DisplayName("input_with_crlf_line_endings_is_accepted")
-    void input_with_crlf_line_endings_is_accepted() throws IOException {
+    void inputWithCrlfLineEndingsIsAccepted() throws IOException {
         // arrange
         Path file = resourceFile("taps-crlf.csv");
         // act
@@ -69,7 +68,7 @@ class CsvTapReaderTest {
 
     @Test
     @DisplayName("input_with_trailing_whitespace_in_fields_is_tolerated")
-    void input_with_trailing_whitespace_in_fields_is_tolerated() throws IOException {
+    void inputWithTrailingWhitespaceInFieldsIsTolerated() throws IOException {
         // arrange
         Path file = resourceFile("taps-whitespace.csv");
         // act
@@ -83,12 +82,14 @@ class CsvTapReaderTest {
 
     @Test
     @DisplayName("blank_lines_skipped")
-    void blank_lines_skipped() throws IOException {
+    void blankLinesSkipped() throws IOException {
         // arrange — two data rows with a blank line between them
-        String csv = "ID, DateTimeUTC, TapType, StopId, CompanyId, BusID, PAN\n" +
-                "1, 22-01-2023 13:00:00, ON, Stop1, Company1, Bus37, 5500005555555559\n" +
-                "\n" +
-                "2, 22-01-2023 13:05:00, OFF, Stop2, Company1, Bus37, 5500005555555559\n";
+        String csv = """
+                ID, DateTimeUTC, TapType, StopId, CompanyId, BusID, PAN
+                1, 22-01-2023 13:00:00, ON, Stop1, Company1, Bus37, 5500005555555559
+                
+                2, 22-01-2023 13:05:00, OFF, Stop2, Company1, Bus37, 5500005555555559
+                """;
         // act
         List<Tap> taps = readCsv(csv);
         // assert
@@ -97,11 +98,13 @@ class CsvTapReaderTest {
 
     @Test
     @DisplayName("tap_type_parses_case_insensitively")
-    void tap_type_parses_case_insensitively() throws IOException {
+    void tapTypeParsesCaseInsensitively() throws IOException {
         // arrange — lowercase "on" and mixed-case "Off"
-        String csv = "ID, DateTimeUTC, TapType, StopId, CompanyId, BusID, PAN\n" +
-                "1, 22-01-2023 13:00:00, on, Stop1, Company1, Bus37, 5500005555555559\n" +
-                "2, 22-01-2023 13:05:00, Off, Stop2, Company1, Bus37, 5500005555555559\n";
+        String csv = """
+                ID, DateTimeUTC, TapType, StopId, CompanyId, BusID, PAN
+                1, 22-01-2023 13:00:00, on, Stop1, Company1, Bus37, 5500005555555559
+                2, 22-01-2023 13:05:00, Off, Stop2, Company1, Bus37, 5500005555555559
+                """;
         // act
         List<Tap> taps = readCsv(csv);
         // assert
@@ -111,10 +114,12 @@ class CsvTapReaderTest {
 
     @Test
     @DisplayName("timestamp_parsed_as_utc_with_correct_date_time")
-    void timestamp_parsed_as_utc_with_correct_date_time() throws IOException {
+    void timestampParsedAsUtcWithCorrectDateTime() throws IOException {
         // arrange
-        String csv = "ID, DateTimeUTC, TapType, StopId, CompanyId, BusID, PAN\n" +
-                "1, 22-01-2023 13:00:00, ON, Stop1, Company1, Bus37, 5500005555555559\n";
+        String csv = """
+                ID, DateTimeUTC, TapType, StopId, CompanyId, BusID, PAN
+                1, 22-01-2023 13:00:00, ON, Stop1, Company1, Bus37, 5500005555555559
+                """;
         // act
         List<Tap> taps = readCsv(csv);
         // assert
@@ -127,7 +132,7 @@ class CsvTapReaderTest {
 
     @Test
     @DisplayName("header_mismatch_throws_with_exit_code_three")
-    void header_mismatch_throws_with_exit_code_three() {
+    void headerMismatchThrowsWithExitCodeThree() {
         // arrange
         Path file = resourceFile("taps-bad-header.csv");
         // act / assert
@@ -138,7 +143,7 @@ class CsvTapReaderTest {
 
     @Test
     @DisplayName("bad_tap_type_throws_with_exit_code_four")
-    void bad_tap_type_throws_with_exit_code_four() {
+    void badTapTypeThrowsWithExitCodeFour() {
         // arrange
         Path file = resourceFile("taps-bad-type.csv");
         // act / assert
@@ -150,7 +155,7 @@ class CsvTapReaderTest {
 
     @Test
     @DisplayName("duplicate_id_throws_with_exit_code_four")
-    void duplicate_id_throws_with_exit_code_four() {
+    void duplicateIdThrowsWithExitCodeFour() {
         // arrange
         Path file = resourceFile("taps-duplicate-id.csv");
         // act / assert

@@ -1,10 +1,9 @@
 package com.littlepay.pricing;
 
-import com.littlepay.exceptions.FareTableException;
 import com.littlepay.domain.Money;
 import com.littlepay.domain.StopId;
 import com.littlepay.domain.StopPair;
-
+import com.littlepay.exceptions.FareTableException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;

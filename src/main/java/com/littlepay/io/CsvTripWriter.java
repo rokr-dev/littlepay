@@ -1,9 +1,6 @@
 package com.littlepay.io;
 
 import com.littlepay.domain.Trip;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
-
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
@@ -12,6 +9,8 @@ import java.nio.file.Path;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 
 /**
  * CSV adapter for {@link TripWriter}.
@@ -19,7 +18,8 @@ import java.util.List;
  * <p>Header: {@code Started,Finished,DurationSecs,FromStopId,ToStopId,ChargeAmount,CompanyId,BusID,PAN,Status}
  * <p>Timestamps: {@code dd-MM-yyyy HH:mm:ss} at UTC, {@link Locale#ROOT}.
  * <p>Money: {@code Money.format()} → e.g. {@code $3.25}.
- * <p>Null fields emit empty cells: {@code started}/{@code fromStop} for UNMATCHED_OFF; {@code finished}/{@code toStop} for INCOMPLETE.
+ * <p>Null fields emit empty cells: {@code started}/{@code fromStop}
+ * for UNMATCHED_OFF; {@code finished}/{@code toStop} for INCOMPLETE.
  * <p>Parent directory created via {@link Files#createDirectories} if missing.
  * <p>Existing file silently overwritten.
  */

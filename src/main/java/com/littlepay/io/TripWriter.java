@@ -1,7 +1,6 @@
 package com.littlepay.io;
 
 import com.littlepay.domain.Trip;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;

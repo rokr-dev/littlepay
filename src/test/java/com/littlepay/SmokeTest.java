@@ -1,10 +1,9 @@
 package com.littlepay;
 
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 /**
  * Smoke tests verifying compiled artefacts exist.
@@ -13,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SmokeTest {
 
     @Test
-    void assembled_jar_exists_after_gradle_jar_task() {
+    void assembledJarExistsAfterGradleJarTask() {
         File jar = new File("build/libs/littlepay.jar");
         // This assertion is only valid when run via `./gradlew test` after `./gradlew jar`.
         // In CI / local TDD, the JAR may not exist yet — that is expected on first red run.

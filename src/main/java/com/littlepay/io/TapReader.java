@@ -4,7 +4,6 @@ import com.littlepay.domain.Tap;
 import com.littlepay.exceptions.InputFileException;
 import com.littlepay.exceptions.TapHeaderException;
 import com.littlepay.exceptions.TapRowException;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;

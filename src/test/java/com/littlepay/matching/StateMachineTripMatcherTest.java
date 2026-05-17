@@ -1,17 +1,22 @@
 package com.littlepay.matching;
 
-import com.littlepay.domain.*;
-import com.littlepay.domain.Pan;
-import com.littlepay.pricing.FareTable;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import com.littlepay.domain.Money;
+import com.littlepay.domain.Pan;
+import com.littlepay.domain.StopId;
+import com.littlepay.domain.StopPair;
+import com.littlepay.domain.Tap;
+import com.littlepay.domain.TapType;
+import com.littlepay.domain.Trip;
+import com.littlepay.domain.TripStatus;
+import com.littlepay.pricing.FareTable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Currency;
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * 20 matcher scenarios from PRD §Testing Decisions > Matcher Scenarios (1-20).
@@ -69,22 +74,22 @@ class StateMachineTripMatcherTest {
         return new Tap(id, dt, TapType.OFF, stop, COMPANY, bus, pan);
     }
 
-    private static LocalDateTime t(int hour, int minute, int second) {
+    private static LocalDateTime timeAt(int hour, int minute, int second) {
         return LocalDateTime.of(2023, 1, 15, hour, minute, second);
     }
 
-    private static LocalDateTime t2(int hour, int minute, int second) {
+    private static LocalDateTime timeAtDay2(int hour, int minute, int second) {
         // second day
         return LocalDateTime.of(2023, 1, 16, hour, minute, second);
     }
 
-    // ── 1. completes_trip_when_on_and_off_at_different_stops ─────────────────
+    // ── 1. completesTripWhenOnAndOffAtDifferentStops ─────────────────────────
 
     @Test
-    void completes_trip_when_on_and_off_at_different_stops() {
+    void completesTripWhenOnAndOffAtDifferentStops() {
         // arrange
-        Tap tapOn  = on(1, t(9, 0, 0), STOP1, PAN_A);
-        Tap tapOff = off(2, t(9, 5, 0), STOP2, PAN_A);
+        Tap tapOn  = on(1, timeAt(9, 0, 0), STOP1, PAN_A);
+        Tap tapOff = off(2, timeAt(9, 5, 0), STOP2, PAN_A);
 
         // act
         List<Trip> trips = matcher.match(List.of(tapOn, tapOff));
@@ -96,17 +101,17 @@ class StateMachineTripMatcherTest {
         assertThat(trip.fromStop()).isEqualTo(STOP1);
         assertThat(trip.toStop()).isEqualTo(STOP2);
         assertThat(trip.chargeAmount()).isEqualTo(FARE_1_2);
-        assertThat(trip.started()).isEqualTo(t(9, 0, 0));
-        assertThat(trip.finished()).isEqualTo(t(9, 5, 0));
+        assertThat(trip.started()).isEqualTo(timeAt(9, 0, 0));
+        assertThat(trip.finished()).isEqualTo(timeAt(9, 5, 0));
     }
 
-    // ── 2. cancels_trip_when_on_and_off_at_same_stop ─────────────────────────
+    // ── 2. cancelsTripWhenOnAndOffAtSameStop ─────────────────────────────────
 
     @Test
-    void cancels_trip_when_on_and_off_at_same_stop() {
+    void cancelsTripWhenOnAndOffAtSameStop() {
         // arrange
-        Tap tapOn  = on(1, t(9, 0, 0), STOP1, PAN_A);
-        Tap tapOff = off(2, t(9, 2, 0), STOP1, PAN_A);
+        Tap tapOn  = on(1, timeAt(9, 0, 0), STOP1, PAN_A);
+        Tap tapOff = off(2, timeAt(9, 2, 0), STOP1, PAN_A);
 
         // act
         List<Trip> trips = matcher.match(List.of(tapOn, tapOff));
@@ -118,12 +123,12 @@ class StateMachineTripMatcherTest {
         assertThat(trip.chargeAmount()).isEqualTo(ZERO);
     }
 
-    // ── 3. marks_trip_incomplete_when_on_has_no_off_before_eod ───────────────
+    // ── 3. marksTripIncompleteWhenOnHasNoOffBeforeEod ────────────────────────
 
     @Test
-    void marks_trip_incomplete_when_on_has_no_off_before_eod() {
+    void marksTripIncompleteWhenOnHasNoOffBeforeEod() {
         // arrange
-        Tap tapOn = on(1, t(9, 0, 0), STOP1, PAN_A);
+        Tap tapOn = on(1, timeAt(9, 0, 0), STOP1, PAN_A);
 
         // act
         List<Trip> trips = matcher.match(List.of(tapOn));
@@ -140,12 +145,12 @@ class StateMachineTripMatcherTest {
         assertThat(trip.toStop()).isNull();
     }
 
-    // ── 4. emits_unmatched_off_when_off_arrives_with_no_prior_on ─────────────
+    // ── 4. emitsUnmatchedOffWhenOffArrivesWithNoPriorOn ──────────────────────
 
     @Test
-    void emits_unmatched_off_when_off_arrives_with_no_prior_on() {
+    void emitsUnmatchedOffWhenOffArrivesWithNoPriorOn() {
         // arrange
-        Tap tapOff = off(1, t(9, 0, 0), STOP2, PAN_A);
+        Tap tapOff = off(1, timeAt(9, 0, 0), STOP2, PAN_A);
 
         // act
         List<Trip> trips = matcher.match(List.of(tapOff));
@@ -160,14 +165,14 @@ class StateMachineTripMatcherTest {
         assertThat(trip.started()).isNull();
     }
 
-    // ── 5. dedups_same_stop_consecutive_ons_within_duplicate_window ──────────
+    // ── 5. dedupsSameStopConsecutiveOnsWithinDuplicateWindow ─────────────────
 
     @Test
-    void dedups_same_stop_consecutive_ons_within_duplicate_window() {
+    void dedupsSameStopConsecutiveOnsWithinDuplicateWindow() {
         // arrange: second ON at same stop, 10s later (within 30s window)
-        Tap on1  = on(1, t(9, 0, 0), STOP1, PAN_A);
-        Tap on2  = on(2, t(9, 0, 10), STOP1, PAN_A);
-        Tap off1 = off(3, t(9, 5, 0), STOP2, PAN_A);
+        Tap on1  = on(1, timeAt(9, 0, 0), STOP1, PAN_A);
+        Tap on2  = on(2, timeAt(9, 0, 10), STOP1, PAN_A);
+        Tap off1 = off(3, timeAt(9, 5, 0), STOP2, PAN_A);
 
         // act
         List<Trip> trips = matcher.match(List.of(on1, on2, off1));
@@ -176,17 +181,17 @@ class StateMachineTripMatcherTest {
         assertThat(trips).hasSize(1);
         Trip trip = trips.get(0);
         assertThat(trip.status()).isEqualTo(TripStatus.COMPLETED);
-        assertThat(trip.started()).isEqualTo(t(9, 0, 0)); // first ON
+        assertThat(trip.started()).isEqualTo(timeAt(9, 0, 0)); // first ON
     }
 
-    // ── 6. splits_same_stop_consecutive_ons_outside_duplicate_window ─────────
+    // ── 6. splitsSameStopConsecutiveOnsOutsideDuplicateWindow ────────────────
 
     @Test
-    void splits_same_stop_consecutive_ons_outside_duplicate_window() {
+    void splitsSameStopConsecutiveOnsOutsideDuplicateWindow() {
         // arrange: second ON at same stop, 60s later (outside 30s window)
-        Tap on1  = on(1, t(9, 0, 0), STOP1, PAN_A);
-        Tap on2  = on(2, t(9, 1, 0), STOP1, PAN_A);
-        Tap off1 = off(3, t(9, 5, 0), STOP2, PAN_A);
+        Tap on1  = on(1, timeAt(9, 0, 0), STOP1, PAN_A);
+        Tap on2  = on(2, timeAt(9, 1, 0), STOP1, PAN_A);
+        Tap off1 = off(3, timeAt(9, 5, 0), STOP2, PAN_A);
 
         // act
         List<Trip> trips = matcher.match(List.of(on1, on2, off1));
@@ -201,17 +206,17 @@ class StateMachineTripMatcherTest {
                 .findFirst().orElseThrow();
 
         assertThat(incomplete.fromStop()).isEqualTo(STOP1);
-        assertThat(completed.started()).isEqualTo(t(9, 1, 0));
+        assertThat(completed.started()).isEqualTo(timeAt(9, 1, 0));
     }
 
-    // ── 7. collapses_cross_stop_consecutive_ons_within_duplicate_window ───────
+    // ── 7. collapsesCrossStopConsecutiveOnsWithinDuplicateWindow ─────────────
 
     @Test
-    void collapses_cross_stop_consecutive_ons_within_duplicate_window() {
+    void collapsesCrossStopConsecutiveOnsWithinDuplicateWindow() {
         // arrange: second ON at different stop, 5s later (within window)
-        Tap on1  = on(1, t(9, 0, 0), STOP1, PAN_A);
-        Tap on2  = on(2, t(9, 0, 5), STOP2, PAN_A);
-        Tap off1 = off(3, t(9, 5, 0), STOP3, PAN_A);
+        Tap on1  = on(1, timeAt(9, 0, 0), STOP1, PAN_A);
+        Tap on2  = on(2, timeAt(9, 0, 5), STOP2, PAN_A);
+        Tap off1 = off(3, timeAt(9, 5, 0), STOP3, PAN_A);
 
         // act
         List<Trip> trips = matcher.match(List.of(on1, on2, off1));
@@ -220,19 +225,19 @@ class StateMachineTripMatcherTest {
         assertThat(trips).hasSize(1);
         Trip trip = trips.get(0);
         assertThat(trip.status()).isEqualTo(TripStatus.COMPLETED);
-        assertThat(trip.started()).isEqualTo(t(9, 0, 0));
+        assertThat(trip.started()).isEqualTo(timeAt(9, 0, 0));
         assertThat(trip.fromStop()).isEqualTo(STOP1);
         assertThat(trip.toStop()).isEqualTo(STOP3);
     }
 
-    // ── 8. splits_cross_stop_consecutive_ons_outside_duplicate_window ─────────
+    // ── 8. splitsCrossStopConsecutiveOnsOutsideDuplicateWindow ───────────────
 
     @Test
-    void splits_cross_stop_consecutive_ons_outside_duplicate_window() {
+    void splitsCrossStopConsecutiveOnsOutsideDuplicateWindow() {
         // arrange: second ON at different stop, 60s later (outside window)
-        Tap on1  = on(1, t(9, 0, 0), STOP1, PAN_A);
-        Tap on2  = on(2, t(9, 1, 0), STOP2, PAN_A);
-        Tap off1 = off(3, t(9, 5, 0), STOP3, PAN_A);
+        Tap on1  = on(1, timeAt(9, 0, 0), STOP1, PAN_A);
+        Tap on2  = on(2, timeAt(9, 1, 0), STOP2, PAN_A);
+        Tap off1 = off(3, timeAt(9, 5, 0), STOP3, PAN_A);
 
         // act
         List<Trip> trips = matcher.match(List.of(on1, on2, off1));
@@ -251,14 +256,14 @@ class StateMachineTripMatcherTest {
         assertThat(completed.toStop()).isEqualTo(STOP3);
     }
 
-    // ── 9. handles_double_off_by_treating_second_as_unmatched ─────────────────
+    // ── 9. handlesDoubleOffByTreatingSecondAsUnmatched ────────────────────────
 
     @Test
-    void handles_double_off_by_treating_second_as_unmatched() {
+    void handlesDoubleOffByTreatingSecondAsUnmatched() {
         // arrange
-        Tap on1  = on(1, t(9, 0, 0), STOP1, PAN_A);
-        Tap off1 = off(2, t(9, 5, 0), STOP2, PAN_A);
-        Tap off2 = off(3, t(9, 6, 0), STOP2, PAN_A);
+        Tap on1  = on(1, timeAt(9, 0, 0), STOP1, PAN_A);
+        Tap off1 = off(2, timeAt(9, 5, 0), STOP2, PAN_A);
+        Tap off2 = off(3, timeAt(9, 6, 0), STOP2, PAN_A);
 
         // act
         List<Trip> trips = matcher.match(List.of(on1, off1, off2));
@@ -271,13 +276,13 @@ class StateMachineTripMatcherTest {
         assertThat(unmatched).isEqualTo(1);
     }
 
-    // ── 10. pairs_taps_within_same_pan_and_bus_only ───────────────────────────
+    // ── 10. pairsTapsWithinSamePanAndBusOnly ─────────────────────────────────
 
     @Test
-    void pairs_taps_within_same_pan_and_bus_only() {
+    void pairsTapsWithinSamePanAndBusOnly() {
         // arrange: PAN_A on BUS_A taps ON; PAN_A on BUS_B taps OFF — should NOT pair
-        Tap on1  = on(1, t(9, 0, 0), STOP1, PAN_A, BUS_A);
-        Tap off1 = off(2, t(9, 5, 0), STOP2, PAN_A, BUS_B);
+        Tap on1  = on(1, timeAt(9, 0, 0), STOP1, PAN_A, BUS_A);
+        Tap off1 = off(2, timeAt(9, 5, 0), STOP2, PAN_A, BUS_B);
 
         // act
         List<Trip> trips = matcher.match(List.of(on1, off1));
@@ -288,10 +293,10 @@ class StateMachineTripMatcherTest {
         assertThat(trips.stream().filter(t -> t.status() == TripStatus.UNMATCHED_OFF).count()).isEqualTo(1);
     }
 
-    // ── 11. does_not_pair_across_utc_day_boundary ─────────────────────────────
+    // ── 11. doesNotPairAcrossUtcDayBoundary ──────────────────────────────────
 
     @Test
-    void does_not_pair_across_utc_day_boundary() {
+    void doesNotPairAcrossUtcDayBoundary() {
         // arrange: ON day 1, OFF day 2 — different buckets
         Tap on1  = new Tap(1, LocalDateTime.of(2023, 1, 15, 23, 55, 0), TapType.ON, STOP1, COMPANY, BUS_A, PAN_A);
         Tap off1 = new Tap(2, LocalDateTime.of(2023, 1, 16, 0, 5, 0), TapType.OFF, STOP2, COMPANY, BUS_A, PAN_A);
@@ -305,13 +310,13 @@ class StateMachineTripMatcherTest {
         assertThat(trips.stream().filter(t -> t.status() == TripStatus.UNMATCHED_OFF).count()).isEqualTo(1);
     }
 
-    // ── 12. sorts_unordered_input_taps_within_bucket ──────────────────────────
+    // ── 12. sortsUnorderedInputTapsWithinBucket ───────────────────────────────
 
     @Test
-    void sorts_unordered_input_taps_within_bucket() {
+    void sortsUnorderedInputTapsWithinBucket() {
         // arrange: OFF provided before ON in input list
-        Tap tapOff = off(2, t(9, 5, 0), STOP2, PAN_A);
-        Tap tapOn  = on(1, t(9, 0, 0), STOP1, PAN_A);
+        Tap tapOff = off(2, timeAt(9, 5, 0), STOP2, PAN_A);
+        Tap tapOn  = on(1, timeAt(9, 0, 0), STOP1, PAN_A);
 
         // act
         List<Trip> trips = matcher.match(List.of(tapOff, tapOn));
@@ -321,15 +326,15 @@ class StateMachineTripMatcherTest {
         assertThat(trips.get(0).status()).isEqualTo(TripStatus.COMPLETED);
     }
 
-    // ── 13. handles_multiple_concurrent_pans_independently ───────────────────
+    // ── 13. handlesMultipleConcurrentPansIndependently ───────────────────────
 
     @Test
-    void handles_multiple_concurrent_pans_independently() {
+    void handlesMultipleConcurrentPansIndependently() {
         // arrange: two PANs on same bus, interleaved taps
-        Tap onA  = on(1, t(9, 0, 0), STOP1, PAN_A);
-        Tap onB  = on(2, t(9, 0, 30), STOP1, PAN_B);
-        Tap offA = off(3, t(9, 5, 0), STOP2, PAN_A);
-        Tap offB = off(4, t(9, 5, 30), STOP3, PAN_B);
+        Tap onA  = on(1, timeAt(9, 0, 0), STOP1, PAN_A);
+        Tap onB  = on(2, timeAt(9, 0, 30), STOP1, PAN_B);
+        Tap offA = off(3, timeAt(9, 5, 0), STOP2, PAN_A);
+        Tap offB = off(4, timeAt(9, 5, 30), STOP3, PAN_B);
 
         // act
         List<Trip> trips = matcher.match(List.of(onA, onB, offA, offB));
@@ -344,13 +349,13 @@ class StateMachineTripMatcherTest {
         assertThat(tripB.toStop()).isEqualTo(STOP3);
     }
 
-    // ── 14. calculates_duration_in_seconds_correctly ─────────────────────────
+    // ── 14. calculatesDurationInSecondsCorrectly ─────────────────────────────
 
     @Test
-    void calculates_duration_in_seconds_correctly() {
+    void calculatesDurationInSecondsCorrectly() {
         // arrange: 5 minutes 30 seconds = 330 seconds
-        Tap tapOn  = on(1, t(9, 0, 0), STOP1, PAN_A);
-        Tap tapOff = off(2, t(9, 5, 30), STOP2, PAN_A);
+        Tap tapOn  = on(1, timeAt(9, 0, 0), STOP1, PAN_A);
+        Tap tapOff = off(2, timeAt(9, 5, 30), STOP2, PAN_A);
 
         // act
         List<Trip> trips = matcher.match(List.of(tapOn, tapOff));
@@ -360,13 +365,13 @@ class StateMachineTripMatcherTest {
         assertThat(trips.get(0).durationSecs()).isEqualTo(330L);
     }
 
-    // ── 15. preserves_company_and_bus_from_on_tap_on_emitted_trip ────────────
+    // ── 15. preservesCompanyAndBusFromOnTapOnEmittedTrip ─────────────────────
 
     @Test
-    void preserves_company_and_bus_from_on_tap_on_emitted_trip() {
+    void preservesCompanyAndBusFromOnTapOnEmittedTrip() {
         // arrange: ON on BUS_A, OFF also on BUS_A (matched by bucket)
-        Tap tapOn  = on(1, t(9, 0, 0), STOP1, PAN_A, BUS_A);
-        Tap tapOff = off(2, t(9, 5, 0), STOP2, PAN_A, BUS_A);
+        Tap tapOn  = on(1, timeAt(9, 0, 0), STOP1, PAN_A, BUS_A);
+        Tap tapOff = off(2, timeAt(9, 5, 0), STOP2, PAN_A, BUS_A);
 
         // act
         List<Trip> trips = matcher.match(List.of(tapOn, tapOff));
@@ -378,15 +383,15 @@ class StateMachineTripMatcherTest {
         assertThat(trip.busId()).isEqualTo(BUS_A);
     }
 
-    // ── 16. multiple_trips_per_passenger_per_day ─────────────────────────────
+    // ── 16. multipleTripsPerPassengerPerDay ──────────────────────────────────
 
     @Test
-    void multiple_trips_per_passenger_per_day() {
+    void multipleTripsPerPassengerPerDay() {
         // arrange: two complete trips for PAN_A on same day and bus
-        Tap on1  = on(1, t(8, 0, 0), STOP1, PAN_A);
-        Tap off1 = off(2, t(8, 5, 0), STOP2, PAN_A);
-        Tap on2  = on(3, t(9, 0, 0), STOP2, PAN_A);
-        Tap off2 = off(4, t(9, 10, 0), STOP3, PAN_A);
+        Tap on1  = on(1, timeAt(8, 0, 0), STOP1, PAN_A);
+        Tap off1 = off(2, timeAt(8, 5, 0), STOP2, PAN_A);
+        Tap on2  = on(3, timeAt(9, 0, 0), STOP2, PAN_A);
+        Tap off2 = off(4, timeAt(9, 10, 0), STOP3, PAN_A);
 
         // act
         List<Trip> trips = matcher.match(List.of(on1, off1, on2, off2));
@@ -396,15 +401,15 @@ class StateMachineTripMatcherTest {
         assertThat(trips.stream().allMatch(t -> t.status() == TripStatus.COMPLETED)).isTrue();
     }
 
-    // ── 17. round_trip_charges_both_legs ────────────────────────────────────
+    // ── 17. roundTripChargesBothLegs ─────────────────────────────────────────
 
     @Test
-    void round_trip_charges_both_legs() {
+    void roundTripChargesBothLegs() {
         // arrange: Stop1→Stop2, then Stop2→Stop1
-        Tap on1  = on(1, t(8, 0, 0), STOP1, PAN_A);
-        Tap off1 = off(2, t(8, 5, 0), STOP2, PAN_A);
-        Tap on2  = on(3, t(9, 0, 0), STOP2, PAN_A);
-        Tap off2 = off(4, t(9, 10, 0), STOP1, PAN_A);
+        Tap on1  = on(1, timeAt(8, 0, 0), STOP1, PAN_A);
+        Tap off1 = off(2, timeAt(8, 5, 0), STOP2, PAN_A);
+        Tap on2  = on(3, timeAt(9, 0, 0), STOP2, PAN_A);
+        Tap off2 = off(4, timeAt(9, 10, 0), STOP1, PAN_A);
 
         // act
         List<Trip> trips = matcher.match(List.of(on1, off1, on2, off2));
@@ -414,14 +419,14 @@ class StateMachineTripMatcherTest {
         assertThat(trips.stream().allMatch(t -> t.chargeAmount().equals(FARE_1_2))).isTrue();
     }
 
-    // ── 18. breaks_ties_on_identical_timestamps_using_input_id_ascending ─────
+    // ── 18. breaksTiesOnIdenticalTimestampsUsingInputIdAscending ─────────────
 
     @Test
-    void breaks_ties_on_identical_timestamps_using_input_id_ascending() {
+    void breaksTiesOnIdenticalTimestampsUsingInputIdAscending() {
         // arrange: two ONs at identical timestamp; id=1 should be kept, id=2 dropped (within window)
-        Tap on1  = on(1, t(9, 0, 0), STOP1, PAN_A);
-        Tap on2  = on(2, t(9, 0, 0), STOP2, PAN_A); // same timestamp, id=2
-        Tap off1 = off(3, t(9, 5, 0), STOP2, PAN_A);
+        Tap on1  = on(1, timeAt(9, 0, 0), STOP1, PAN_A);
+        Tap on2  = on(2, timeAt(9, 0, 0), STOP2, PAN_A); // same timestamp, id=2
+        Tap off1 = off(3, timeAt(9, 5, 0), STOP2, PAN_A);
 
         // act
         List<Trip> trips = matcher.match(List.of(on2, on1, off1)); // deliberately unsorted
@@ -433,15 +438,15 @@ class StateMachineTripMatcherTest {
         assertThat(trip.fromStop()).isEqualTo(STOP1); // id=1 wins the tiebreak
     }
 
-    // ── 19. new_on_after_cancelled_within_window_starts_new_trip ─────────────
+    // ── 19. newOnAfterCancelledWithinWindowStartsNewTrip ─────────────────────
 
     @Test
-    void new_on_after_cancelled_within_window_starts_new_trip() {
+    void newOnAfterCancelledWithinWindowStartsNewTrip() {
         // arrange: ON+OFF same stop (CANCELLED), then new ON within 30s
-        Tap on1  = on(1, t(9, 0, 0), STOP1, PAN_A);
-        Tap off1 = off(2, t(9, 0, 10), STOP1, PAN_A); // CANCELLED
-        Tap on2  = on(3, t(9, 0, 15), STOP2, PAN_A);  // new ON within window of off1
-        Tap off2 = off(4, t(9, 5, 0), STOP3, PAN_A);  // completes trip from STOP2
+        Tap on1  = on(1, timeAt(9, 0, 0), STOP1, PAN_A);
+        Tap off1 = off(2, timeAt(9, 0, 10), STOP1, PAN_A); // CANCELLED
+        Tap on2  = on(3, timeAt(9, 0, 15), STOP2, PAN_A);  // new ON within window of off1
+        Tap off2 = off(4, timeAt(9, 5, 0), STOP3, PAN_A);  // completes trip from STOP2
 
         // act
         List<Trip> trips = matcher.match(List.of(on1, off1, on2, off2));
@@ -455,15 +460,15 @@ class StateMachineTripMatcherTest {
         assertThat(completed.fromStop()).isEqualTo(STOP2);
     }
 
-    // ── 20. triple_on_within_window_drops_all_but_first_on ───────────────────
+    // ── 20. tripleOnWithinWindowDropsAllButFirstOn ────────────────────────────
 
     @Test
-    void triple_on_within_window_drops_all_but_first_on() {
+    void tripleOnWithinWindowDropsAllButFirstOn() {
         // arrange: three ONs within 30s window; first remains active
-        Tap on1  = on(1, t(9, 0, 0), STOP1, PAN_A);
-        Tap on2  = on(2, t(9, 0, 5), STOP2, PAN_A);
-        Tap on3  = on(3, t(9, 0, 10), STOP3, PAN_A);
-        Tap off1 = off(4, t(9, 5, 0), STOP2, PAN_A);
+        Tap on1  = on(1, timeAt(9, 0, 0), STOP1, PAN_A);
+        Tap on2  = on(2, timeAt(9, 0, 5), STOP2, PAN_A);
+        Tap on3  = on(3, timeAt(9, 0, 10), STOP3, PAN_A);
+        Tap off1 = off(4, timeAt(9, 5, 0), STOP2, PAN_A);
 
         // act
         List<Trip> trips = matcher.match(List.of(on1, on2, on3, off1));
@@ -491,9 +496,15 @@ class StateMachineTripMatcherTest {
             String a = pair.first().value();
             String b = pair.second().value();
             // StopPair normalises lexicographically: Stop1 < Stop2 < Stop3
-            if (a.equals("Stop1") && b.equals("Stop2")) return FARE_1_2;
-            if (a.equals("Stop1") && b.equals("Stop3")) return FARE_1_3;
-            if (a.equals("Stop2") && b.equals("Stop3")) return FARE_2_3;
+            if (a.equals("Stop1") && b.equals("Stop2")) {
+                return FARE_1_2;
+            }
+            if (a.equals("Stop1") && b.equals("Stop3")) {
+                return FARE_1_3;
+            }
+            if (a.equals("Stop2") && b.equals("Stop3")) {
+                return FARE_2_3;
+            }
             throw new IllegalArgumentException("No fare for " + pair);
         }
 

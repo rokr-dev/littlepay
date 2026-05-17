@@ -9,12 +9,11 @@ import com.littlepay.io.CsvTripWriter;
 import com.littlepay.io.FareTableLoader;
 import com.littlepay.matching.StateMachineTripMatcher;
 import com.littlepay.pricing.FareTable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Entry point. Hand-wires all dependencies and runs the pipeline.

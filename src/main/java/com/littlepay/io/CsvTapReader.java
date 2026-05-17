@@ -1,18 +1,12 @@
 package com.littlepay.io;
 
-import com.littlepay.exceptions.InputFileException;
-import com.littlepay.exceptions.TapHeaderException;
-import com.littlepay.exceptions.TapRowException;
+import com.littlepay.domain.Pan;
 import com.littlepay.domain.StopId;
 import com.littlepay.domain.Tap;
 import com.littlepay.domain.TapType;
-import com.littlepay.domain.Pan;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.littlepay.exceptions.InputFileException;
+import com.littlepay.exceptions.TapHeaderException;
+import com.littlepay.exceptions.TapRowException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -27,6 +21,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Adapter: reads tap events from a UTF-8 CSV file (BOM optional, CRLF or LF).

@@ -2,7 +2,6 @@ package com.littlepay.matching;
 
 import com.littlepay.domain.Tap;
 import com.littlepay.domain.Trip;
-
 import java.util.List;
 
 /**

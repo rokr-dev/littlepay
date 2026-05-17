@@ -6,14 +6,13 @@ import com.littlepay.domain.TripStatus;
 import com.littlepay.io.TapReader;
 import com.littlepay.io.TripWriter;
 import com.littlepay.matching.TripMatcher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Orchestrates the full pipeline: read taps → match+price → sort → write trips.

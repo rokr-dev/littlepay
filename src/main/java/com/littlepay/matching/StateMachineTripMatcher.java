@@ -1,17 +1,25 @@
 package com.littlepay.matching;
 
 import com.littlepay.cli.CliArgs;
-import com.littlepay.domain.*;
+import com.littlepay.domain.Money;
 import com.littlepay.domain.Pan;
+import com.littlepay.domain.StopPair;
+import com.littlepay.domain.Tap;
+import com.littlepay.domain.TapType;
+import com.littlepay.domain.Trip;
+import com.littlepay.domain.TripStatus;
 import com.littlepay.pricing.FareTable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Currency;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * State-machine trip matcher.
@@ -41,7 +49,9 @@ public final class StateMachineTripMatcher implements TripMatcher {
     }
 
     public StateMachineTripMatcher(FareTable fareTable, int duplicateWindowSecs) {
-        if (fareTable == null) throw new IllegalArgumentException("fareTable must not be null");
+        if (fareTable == null) {
+            throw new IllegalArgumentException("fareTable must not be null");
+        }
         this.fareTable = fareTable;
         this.duplicateWindowSecs = duplicateWindowSecs;
     }

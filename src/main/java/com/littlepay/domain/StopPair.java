@@ -34,8 +34,12 @@ public final class StopPair {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof StopPair sp)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof StopPair sp)) {
+            return false;
+        }
         return first.equals(sp.first) && second.equals(sp.second);
     }
 

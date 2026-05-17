@@ -1,13 +1,13 @@
 package com.littlepay.domain;
 
-import org.junit.jupiter.api.Test;
-
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import org.junit.jupiter.api.Test;
 
 class StopIdTest {
 
     @Test
-    void rejects_blank_stop_id() {
+    void rejectsBlankStopId() {
         assertThatThrownBy(() -> new StopId(""))
                 .isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> new StopId("   "))
