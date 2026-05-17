@@ -59,6 +59,14 @@ Pass `-h` or `--help` to print usage and exit 0. Running with no arguments print
 
 Runs the full test suite (unit + golden-file E2E). All tests must pass before the binary is considered valid.
 
+## Logs
+
+Runtime logs are written to `logs/littlepay.log` at the repo root. The file appender captures INFO and above; the log rolls daily and retains 30 days of history.
+
+WARN and ERROR messages also stream to **stderr** at runtime, so failures remain visible in the terminal without tailing the log file.
+
+The `logs/` folder is gitignored (only `logs/.gitkeep` is tracked). Tests do not write to `logs/`.
+
 ## Example
 
 After building, run the bundled sample:
@@ -83,11 +91,22 @@ cli → App → [ FareTableLoader | CsvTapReader ] → TripMatcher → Pricer �
 ```
 
 - **CsvTapReader** — parses and validates tap rows; rejects malformed input fast.
-- **TripMatcher** — groups taps into `(PAN, BusID, UTC-day)` buckets, applies the duplicate-detection window, and produces trips with statuses: COMPLETED, INCOMPLETE, CANCELLED, UNMATCHED_OFF.
+- **TripMatcher** — groups taps into `(PAN, companyId, BusID, UTC-day)` buckets, applies the duplicate-detection window, and produces trips with statuses: COMPLETED, INCOMPLETE, CANCELLED, UNMATCHED_OFF.
 - **Pricer** — looks up fares from the fare matrix; charges max-from-origin for INCOMPLETE trips; zero for CANCELLED and UNMATCHED_OFF.
 - **CsvTripWriter** — writes the output CSV sorted by Started timestamp (then input ID as tiebreaker).
 
 See `ASSUMPTIONS.md` for the full list of domain assumptions and edge-case policies.
+
+## Documentation
+
+This project maintains an intentional engineering documentation trail from thinking through shipping:
+
+1. **Design session** — Initial problem exploration and tradeoff analysis (grilling session; not in repo).
+2. **[`docs/design-decisions.md`](docs/design-decisions.md)** — Distilled engineering decisions, rationale, and tradeoffs that drove implementation choices.
+3. **[`docs/littlepay-trip-PRD.md`](docs/littlepay-trip-PRD.md)** — Formal product specification: module contracts, data structures, and trip-matching behavior.
+4. **[`.workflow/kanban/done/`](.workflow/kanban/done/)** — Vertical-slice implementation tickets, each with one focused commit showing the TDD workflow.
+
+The design rationale lives in the engineering doc, keeping the PRD lean and contract-focused.
 
 ## Trip statuses
 
