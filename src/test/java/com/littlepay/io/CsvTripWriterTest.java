@@ -68,7 +68,7 @@ class CsvTripWriterTest {
 
         List<String> lines = Files.readAllLines(out);
         assertThat(lines).isNotEmpty();
-        assertThat(lines.get(0)).isEqualTo(EXPECTED_HEADER);
+        assertThat(lines.getFirst()).isEqualTo(EXPECTED_HEADER);
     }
 
     @Test
@@ -84,7 +84,7 @@ class CsvTripWriterTest {
              CSVParser parser = CSVParser.parse(r, fmt)) {
             List<CSVRecord> records = parser.getRecords();
             assertThat(records).hasSize(1);
-            CSVRecord row = records.get(0);
+            CSVRecord row = records.getFirst();
             assertThat(row.get("Started")).as("Started should be empty for UNMATCHED_OFF").isEmpty();
             assertThat(row.get("FromStopId")).as("FromStopId should be empty for UNMATCHED_OFF").isEmpty();
             // Verify other required fields present
@@ -105,7 +105,7 @@ class CsvTripWriterTest {
              CSVParser parser = CSVParser.parse(r, fmt)) {
             List<CSVRecord> records = parser.getRecords();
             assertThat(records).hasSize(1);
-            CSVRecord row = records.get(0);
+            CSVRecord row = records.getFirst();
             assertThat(row.get("Started")).isEqualTo("22-01-2023 13:00:00");
             assertThat(row.get("Finished")).isEqualTo("22-01-2023 13:05:00");
             assertThat(row.get("DurationSecs")).isEqualTo("300");
@@ -128,7 +128,7 @@ class CsvTripWriterTest {
 
         assertThat(nested).exists();
         List<String> lines = Files.readAllLines(nested);
-        assertThat(lines.get(0)).isEqualTo(EXPECTED_HEADER);
+        assertThat(lines.getFirst()).isEqualTo(EXPECTED_HEADER);
     }
 
     @Test
@@ -142,7 +142,7 @@ class CsvTripWriterTest {
 
         List<String> lines = Files.readAllLines(out);
         // Stale content gone; fresh header present
-        assertThat(lines.get(0)).isEqualTo(EXPECTED_HEADER);
+        assertThat(lines.getFirst()).isEqualTo(EXPECTED_HEADER);
         assertThat(lines).hasSize(2);
     }
 }

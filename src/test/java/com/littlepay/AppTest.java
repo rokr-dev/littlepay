@@ -92,7 +92,7 @@ class AppTest {
         // assert — exactly 1 line (header)
         List<String> lines = Files.readAllLines(out);
         assertThat(lines).hasSize(1);
-        assertThat(lines.get(0)).startsWith("Started");
+        assertThat(lines.getFirst()).startsWith("Started");
     }
 
     @Test

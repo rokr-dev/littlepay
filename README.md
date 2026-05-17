@@ -24,8 +24,22 @@ Produces `build/libs/littlepay.jar`.
 
 ## Run
 
+Via the built JAR:
+
 ```
 java -jar build/libs/littlepay.jar <input.csv> <output.csv> [--fares <path>] [--duplicate-window-seconds <N>]
+```
+
+Via Gradle (without building the JAR first):
+
+```
+./gradlew run --args='<input.csv> <output.csv> [--fares <path>] [--duplicate-window-seconds <N>]'
+```
+
+Example:
+
+```
+./gradlew run --args='--input examples/taps-sample.csv --output /tmp/trips-out.csv'
 ```
 
 | Argument | Required | Description |

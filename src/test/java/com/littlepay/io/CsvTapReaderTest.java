@@ -50,8 +50,8 @@ class CsvTapReaderTest {
         List<Tap> taps = new CsvTapReader().read(file);
         // assert
         assertThat(taps).hasSize(1);
-        assertThat(taps.get(0).id()).isEqualTo(1L);
-        assertThat(taps.get(0).tapType()).isEqualTo(TapType.ON);
+        assertThat(taps.getFirst().id()).isEqualTo(1L);
+        assertThat(taps.getFirst().tapType()).isEqualTo(TapType.ON);
     }
 
     @Test
@@ -63,7 +63,7 @@ class CsvTapReaderTest {
         List<Tap> taps = new CsvTapReader().read(file);
         // assert
         assertThat(taps).hasSize(1);
-        assertThat(taps.get(0).stopId().value()).isEqualTo("Stop1");
+        assertThat(taps.getFirst().stopId().value()).isEqualTo("Stop1");
     }
 
     @Test
@@ -75,9 +75,9 @@ class CsvTapReaderTest {
         List<Tap> taps = new CsvTapReader().read(file);
         // assert
         assertThat(taps).hasSize(1);
-        assertThat(taps.get(0).id()).isEqualTo(1L);
-        assertThat(taps.get(0).companyId()).isEqualTo("Company1");
-        assertThat(taps.get(0).busId()).isEqualTo("Bus37");
+        assertThat(taps.getFirst().id()).isEqualTo(1L);
+        assertThat(taps.getFirst().companyId()).isEqualTo("Company1");
+        assertThat(taps.getFirst().busId()).isEqualTo("Bus37");
     }
 
     @Test
@@ -108,7 +108,7 @@ class CsvTapReaderTest {
         // act
         List<Tap> taps = readCsv(csv);
         // assert
-        assertThat(taps.get(0).tapType()).isEqualTo(TapType.ON);
+        assertThat(taps.getFirst().tapType()).isEqualTo(TapType.ON);
         assertThat(taps.get(1).tapType()).isEqualTo(TapType.OFF);
     }
 
@@ -123,7 +123,7 @@ class CsvTapReaderTest {
         // act
         List<Tap> taps = readCsv(csv);
         // assert
-        assertThat(taps.get(0).dateTime()).isEqualTo(LocalDateTime.of(2023, 1, 22, 13, 0, 0));
+        assertThat(taps.getFirst().dateTime()).isEqualTo(LocalDateTime.of(2023, 1, 22, 13, 0, 0));
     }
 
     // -----------------------------------------------------------------------

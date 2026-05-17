@@ -64,10 +64,7 @@ public class Main {
         } catch (LittlepayException e) {
             System.err.println(e.getMessage());
             System.exit(e.getExitCode());
-        } catch (IOException e) {
-            System.err.println("Unexpected error: " + e.getMessage());
-            System.exit(1);
-        } catch (RuntimeException e) {
+        } catch (IOException | RuntimeException e) {
             System.err.println("Unexpected error: " + e.getMessage());
             System.exit(1);
         }

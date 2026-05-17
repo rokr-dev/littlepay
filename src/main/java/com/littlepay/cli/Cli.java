@@ -4,13 +4,15 @@ import com.littlepay.exceptions.CliUsageException;
 
 /**
  * Hand-rolled CLI argument parser. No third-party CLI library.
- *
- * Usage: littlepay <input> <output> [--fares <path>] [--duplicate-window-seconds <N>] [-h|--help]
+ * <p>
+ * Usage: --input &lt;path&gt; --output &lt;path&gt;
+ *   [--fares &lt;path&gt;] [--duplicate-window-seconds &lt;N&gt;] [-h|--help]
  */
 public class Cli {
 
     private static final String USAGE =
-            "usage: littlepay <input> <output> [--fares <path>] [--duplicate-window-seconds <N>] [-h|--help]";
+            "usage: --input <path> --output <path>"
+            + " [--fares <path>] [--duplicate-window-seconds <N>] [-h|--help]";
 
     private Cli() {}
 
@@ -20,7 +22,7 @@ public class Cli {
      * <ul>
      *   <li>No arguments → prints usage to stderr and throws {@link CliUsageException}.</li>
      *   <li>{@code -h} / {@code --help} → prints usage to stdout and returns a sentinel with {@code help=true}.</li>
-     *   <li>Otherwise expects exactly two positional args (input, output) plus optional flags.</li>
+     *   <li>Otherwise {@code --input} and {@code --output} are required named flags.</li>
      * </ul>
      */
     public static CliArgs parse(String[] args) {
@@ -48,7 +50,13 @@ public class Cli {
         int i = 0;
         while (i < args.length) {
             String arg = args[i];
-            if ("--fares".equals(arg)) {
+            if ("--input".equals(arg)) {
+                i++;
+                inputPath = args[i];
+            } else if ("--output".equals(arg)) {
+                i++;
+                outputPath = args[i];
+            } else if ("--fares".equals(arg)) {
                 i++;
                 faresPath = args[i];
             } else if ("--duplicate-window-seconds".equals(arg)) {
@@ -61,19 +69,17 @@ public class Cli {
                     throw new CliUsageException(
                             "--duplicate-window-seconds requires an integer, got: '" + windowVal + "'");
                 }
-            } else if (arg.startsWith("-")) {
-                // unknown flag — ignore for now
-            } else if (inputPath == null) {
-                inputPath = arg;
-            } else if (outputPath == null) {
-                outputPath = arg;
             }
             i++;
         }
 
-        if (inputPath == null || outputPath == null) {
+        if (inputPath == null) {
             System.err.println(USAGE);
-            throw new CliUsageException("usage: missing positional arguments — " + USAGE);
+            throw new CliUsageException("usage: missing required flag --input — " + USAGE);
+        }
+        if (outputPath == null) {
+            System.err.println(USAGE);
+            throw new CliUsageException("usage: missing required flag --output — " + USAGE);
         }
 
         return new CliArgs(inputPath, outputPath, faresPath, duplicateWindowSeconds, false);
