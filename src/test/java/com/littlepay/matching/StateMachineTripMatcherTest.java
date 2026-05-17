@@ -96,7 +96,7 @@ class StateMachineTripMatcherTest {
 
         // assert
         assertThat(trips).hasSize(1);
-        Trip trip = trips.get(0);
+        Trip trip = trips.getFirst();
         assertThat(trip.status()).isEqualTo(TripStatus.COMPLETED);
         assertThat(trip.fromStop()).isEqualTo(STOP1);
         assertThat(trip.toStop()).isEqualTo(STOP2);
@@ -118,7 +118,7 @@ class StateMachineTripMatcherTest {
 
         // assert
         assertThat(trips).hasSize(1);
-        Trip trip = trips.get(0);
+        Trip trip = trips.getFirst();
         assertThat(trip.status()).isEqualTo(TripStatus.CANCELLED);
         assertThat(trip.chargeAmount()).isEqualTo(ZERO);
     }
@@ -135,7 +135,7 @@ class StateMachineTripMatcherTest {
 
         // assert
         assertThat(trips).hasSize(1);
-        Trip trip = trips.get(0);
+        Trip trip = trips.getFirst();
         assertThat(trip.status()).isEqualTo(TripStatus.INCOMPLETE);
         // max fare from Stop1 is Stop1<->Stop3 = $7.30
         assertThat(trip.chargeAmount()).isEqualTo(FARE_1_3);
@@ -157,7 +157,7 @@ class StateMachineTripMatcherTest {
 
         // assert
         assertThat(trips).hasSize(1);
-        Trip trip = trips.get(0);
+        Trip trip = trips.getFirst();
         assertThat(trip.status()).isEqualTo(TripStatus.UNMATCHED_OFF);
         assertThat(trip.chargeAmount()).isEqualTo(ZERO);
         assertThat(trip.toStop()).isEqualTo(STOP2);
@@ -179,7 +179,7 @@ class StateMachineTripMatcherTest {
 
         // assert: only one trip — second ON was dropped; first ON remains active
         assertThat(trips).hasSize(1);
-        Trip trip = trips.get(0);
+        Trip trip = trips.getFirst();
         assertThat(trip.status()).isEqualTo(TripStatus.COMPLETED);
         assertThat(trip.started()).isEqualTo(timeAt(9, 0, 0)); // first ON
     }
@@ -223,7 +223,7 @@ class StateMachineTripMatcherTest {
 
         // assert: second ON dropped; first ON active → COMPLETED from Stop1 to Stop3
         assertThat(trips).hasSize(1);
-        Trip trip = trips.get(0);
+        Trip trip = trips.getFirst();
         assertThat(trip.status()).isEqualTo(TripStatus.COMPLETED);
         assertThat(trip.started()).isEqualTo(timeAt(9, 0, 0));
         assertThat(trip.fromStop()).isEqualTo(STOP1);
@@ -323,7 +323,7 @@ class StateMachineTripMatcherTest {
 
         // assert: still produces a COMPLETED trip
         assertThat(trips).hasSize(1);
-        assertThat(trips.get(0).status()).isEqualTo(TripStatus.COMPLETED);
+        assertThat(trips.getFirst().status()).isEqualTo(TripStatus.COMPLETED);
     }
 
     // ── 13. handlesMultipleConcurrentPansIndependently ───────────────────────
@@ -362,7 +362,7 @@ class StateMachineTripMatcherTest {
 
         // assert
         assertThat(trips).hasSize(1);
-        assertThat(trips.get(0).durationSecs()).isEqualTo(330L);
+        assertThat(trips.getFirst().durationSecs()).isEqualTo(330L);
     }
 
     // ── 15. preservesCompanyAndBusFromOnTapOnEmittedTrip ─────────────────────
@@ -378,7 +378,7 @@ class StateMachineTripMatcherTest {
 
         // assert
         assertThat(trips).hasSize(1);
-        Trip trip = trips.get(0);
+        Trip trip = trips.getFirst();
         assertThat(trip.companyId()).isEqualTo(COMPANY);
         assertThat(trip.busId()).isEqualTo(BUS_A);
     }
@@ -433,7 +433,7 @@ class StateMachineTripMatcherTest {
 
         // assert: only one trip, started from the ON with id=1 (STOP1)
         assertThat(trips).hasSize(1);
-        Trip trip = trips.get(0);
+        Trip trip = trips.getFirst();
         assertThat(trip.status()).isEqualTo(TripStatus.COMPLETED);
         assertThat(trip.fromStop()).isEqualTo(STOP1); // id=1 wins the tiebreak
     }
@@ -475,10 +475,29 @@ class StateMachineTripMatcherTest {
 
         // assert: only one trip — first ON (STOP1) remains active throughout
         assertThat(trips).hasSize(1);
-        Trip trip = trips.get(0);
+        Trip trip = trips.getFirst();
         assertThat(trip.status()).isEqualTo(TripStatus.COMPLETED);
         assertThat(trip.fromStop()).isEqualTo(STOP1);
         assertThat(trip.toStop()).isEqualTo(STOP2);
+    }
+
+    // ── 21. doesNotPairTapsAcrossDifferentCompaniesOnSameBus ─────────────────
+
+    @Test
+    void doesNotPairTapsAcrossDifferentCompaniesOnSameBus() {
+        // arrange: same PAN, same busId, same day — but different companies
+        // Without companyId in BucketKey these land in the same bucket and pair incorrectly
+        String bus = "Bus1";
+        Tap tapOn  = new Tap(1, timeAt(9, 0, 0),  TapType.ON,  STOP1, "Company1", bus, PAN_A);
+        Tap tapOff = new Tap(2, timeAt(9, 5, 0),  TapType.OFF, STOP2, "Company2", bus, PAN_A);
+
+        // act
+        List<Trip> trips = matcher.match(List.of(tapOn, tapOff));
+
+        // assert: ON → INCOMPLETE (Company1), OFF → UNMATCHED_OFF (Company2)
+        assertThat(trips).hasSize(2);
+        assertThat(trips.stream().filter(t -> t.status() == TripStatus.INCOMPLETE).count()).isEqualTo(1);
+        assertThat(trips.stream().filter(t -> t.status() == TripStatus.UNMATCHED_OFF).count()).isEqualTo(1);
     }
 
     // ── Fake FareTable ────────────────────────────────────────────────────────

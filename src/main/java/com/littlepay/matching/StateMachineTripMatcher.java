@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
  *
  * <p>Algorithm:
  * <ol>
- *   <li>Bucket taps by (PAN, BusID, UTC calendar-day).</li>
+ *   <li>Bucket taps by (PAN, CompanyID, BusID, UTC calendar-day).</li>
  *   <li>Sort each bucket: DateTimeUTC asc, tap ID asc (deterministic tiebreak).</li>
  *   <li>Run a two-state machine per bucket:
  *     <ul>
@@ -187,9 +187,9 @@ public final class StateMachineTripMatcher implements TripMatcher {
 
     // ── Bucket key ───────────────────────────────────────────────────────────
 
-    private record BucketKey(Pan pan, String busId, LocalDate utcDay) {
+    private record BucketKey(Pan pan, String companyId, String busId, LocalDate utcDay) {
         static BucketKey of(Tap tap) {
-            return new BucketKey(tap.pan(), tap.busId(), tap.dateTime().toLocalDate());
+            return new BucketKey(tap.pan(), tap.companyId(), tap.busId(), tap.dateTime().toLocalDate());
         }
     }
 }
