@@ -15,6 +15,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Currency;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -64,17 +65,39 @@ public final class StateMachineTripMatcher implements TripMatcher {
 
     @Override
     public List<Trip> match(List<Tap> taps) {
+        log.debug("match: received {} tap(s)", taps.size());
+
         // Group into (PAN, BusID, UTC-day) buckets
         Map<BucketKey, List<Tap>> buckets = taps.stream()
                 .collect(Collectors.groupingBy(BucketKey::of));
 
+        log.debug("match: {} bucket(s) formed", buckets.size());
+
         List<Trip> results = new ArrayList<>();
         for (Map.Entry<BucketKey, List<Tap>> entry : buckets.entrySet()) {
+            BucketKey key = entry.getKey();
             List<Tap> bucket = entry.getValue();
+            log.debug("bucket [pan={} company={} bus={} day={}]: {} tap(s)",
+                    key.pan().masked(), key.companyId(), key.busId(), key.utcDay(), bucket.size());
             // Sort: timestamp asc, then tap-id asc for identical timestamps
             bucket.sort(Comparator.comparing(Tap::dateTime).thenComparingLong(Tap::id));
             results.addAll(processBucket(bucket));
         }
+
+        // Aggregate counts for INFO summary
+        Map<TripStatus, Long> counts = new EnumMap<>(TripStatus.class);
+        for (Trip t : results) {
+            counts.merge(t.status(), 1L, Long::sum);
+        }
+        log.info(
+                "match complete: taps_in={} trips_out={} completed={} incomplete={} cancelled={} unmatched_off={}",
+                taps.size(),
+                results.size(),
+                counts.getOrDefault(TripStatus.COMPLETED, 0L),
+                counts.getOrDefault(TripStatus.INCOMPLETE, 0L),
+                counts.getOrDefault(TripStatus.CANCELLED, 0L),
+                counts.getOrDefault(TripStatus.UNMATCHED_OFF, 0L));
+
         return results;
     }
 
@@ -83,9 +106,13 @@ public final class StateMachineTripMatcher implements TripMatcher {
         TripState state = new TripState.Waiting();
 
         for (Tap tap : sortedTaps) {
+            log.debug("tap id={} type={} pan={} stop={} ts={}",
+                    tap.id(), tap.tapType(), tap.pan().masked(), tap.stopId().value(), tap.dateTime());
+
             if (tap.tapType() == TapType.ON) {
                 if (state instanceof TripState.Waiting()) {
                     // waiting → onHeld
+                    log.debug("state: Waiting -> OnHeld (tap id={})", tap.id());
                     state = new TripState.OnHeld(tap);
                 } else {
                     TripState.OnHeld onHeld = (TripState.OnHeld) state;
@@ -93,11 +120,15 @@ public final class StateMachineTripMatcher implements TripMatcher {
                     long gapSecs = ChronoUnit.SECONDS.between(held.dateTime(), tap.dateTime());
                     if (gapSecs <= duplicateWindowSecs) {
                         // within window → drop new ON (hardware misfire)
-                        log.warn("Duplicate ON dropped within window: tap id={} pan={} bus={}",
-                                tap.id(), tap.pan().masked(), tap.busId());
+                        log.warn("dedup: ON id={} pan={} dropped, gap={}s <= window={}s, keeping held id={}",
+                                tap.id(), tap.pan().masked(), gapSecs, duplicateWindowSecs, held.id());
+                        log.debug("state: OnHeld({}) unchanged after dedup drop", held.id());
                         // remain in OnHeld(held) — do NOT update state
                     } else {
                         // outside window → emit prev as INCOMPLETE, hold new
+                        log.warn("consecutive ON: held id={} pan={} -> INCOMPLETE, gap={}s > window={}s",
+                                held.id(), held.pan().masked(), gapSecs, duplicateWindowSecs);
+                        log.debug("state: OnHeld({}) -> INCOMPLETE + OnHeld({})", held.id(), tap.id());
                         trips.add(makeIncomplete(held));
                         state = new TripState.OnHeld(tap);
                     }
@@ -105,13 +136,20 @@ public final class StateMachineTripMatcher implements TripMatcher {
             } else { // TapType.OFF
                 if (state instanceof TripState.Waiting()) {
                     // waiting + OFF → UNMATCHED_OFF
+                    log.warn("unmatched OFF: tap id={} pan={} stop={}, no prior ON in bucket",
+                            tap.id(), tap.pan().masked(), tap.stopId().value());
+                    log.debug("state: Waiting + OFF -> UNMATCHED_OFF (tap id={})", tap.id());
                     trips.add(makeUnmatchedOff(tap));
                 } else {
                     TripState.OnHeld onHeld = (TripState.OnHeld) state;
                     Tap held = onHeld.tap(); // onHeld + OFF
                     if (held.stopId().equals(tap.stopId())) {
+                        log.debug("state: OnHeld({}) + OFF id={} same stop -> CANCELLED, Waiting",
+                                held.id(), tap.id());
                         trips.add(makeCancelled(held, tap));
                     } else {
+                        log.debug("state: OnHeld({}) + OFF id={} diff stop -> COMPLETED, Waiting",
+                                held.id(), tap.id());
                         trips.add(makeCompleted(held, tap));
                     }
                     state = new TripState.Waiting(); // back to waiting
@@ -121,6 +159,9 @@ public final class StateMachineTripMatcher implements TripMatcher {
 
         // End of bucket — flush any remaining held ON as INCOMPLETE
         if (state instanceof TripState.OnHeld(Tap held)) {
+            log.warn("end-of-bucket: ON id={} pan={} flushed as INCOMPLETE, no matching OFF",
+                    held.id(), held.pan().masked());
+            log.debug("state: OnHeld({}) -> INCOMPLETE at end of bucket", held.id());
             trips.add(makeIncomplete(held));
         }
 

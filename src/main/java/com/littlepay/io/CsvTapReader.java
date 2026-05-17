@@ -52,6 +52,7 @@ public final class CsvTapReader implements TapReader {
             CsvFormats.skipBomIfPresent(reader);
             return parse(reader, path.toString());
         } catch (IOException e) {
+            log.error("failed to open tap file: {}", path, e);
             throw new InputFileException("Tap file not found or unreadable: " + path, e);
         }
     }
@@ -106,6 +107,7 @@ public final class CsvTapReader implements TapReader {
         try {
             id = Long.parseLong(idStr, 10);
         } catch (NumberFormatException e) {
+            log.error("invalid tap ID '{}' at row {} in {}", idStr, rowNum, sourceName, e);
             throw new TapRowException(
                     "Invalid ID '" + idStr + "' at row " + rowNum + " in " + sourceName, e);
         }
@@ -121,6 +123,7 @@ public final class CsvTapReader implements TapReader {
         try {
             dateTime = LocalDateTime.parse(tsStr, TIMESTAMP_FMT);
         } catch (DateTimeParseException e) {
+            log.error("invalid timestamp '{}' at row {} in {}", tsStr, rowNum, sourceName, e);
             throw new TapRowException(
                     "Invalid timestamp '" + tsStr + "' at row " + rowNum + " in " + sourceName
                             + " — expected dd-MM-yyyy HH:mm:ss", e);
@@ -132,6 +135,7 @@ public final class CsvTapReader implements TapReader {
         try {
             tapType = TapType.valueOf(tapTypeStr.toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
+            log.error("invalid TapType '{}' at row {} in {}", tapTypeStr, rowNum, sourceName, e);
             throw new TapRowException(
                     "Invalid TapType '" + tapTypeStr + "' at row " + rowNum + " in " + sourceName
                             + " — expected ON or OFF", e);

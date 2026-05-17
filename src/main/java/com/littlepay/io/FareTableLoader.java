@@ -24,6 +24,8 @@ import java.util.regex.Pattern;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Loads and strictly validates a fare CSV file into a {@link FareTable}.
@@ -33,6 +35,8 @@ import org.apache.commons.csv.CSVRecord;
  * Any deviation fails fast with exit code 6 ({@link FareTableException}).
  */
 public final class FareTableLoader {
+
+    private static final Logger log = LoggerFactory.getLogger(FareTableLoader.class);
 
     private static final Currency AUD = Currency.getInstance("AUD");
 
@@ -54,6 +58,7 @@ public final class FareTableLoader {
             CsvFormats.skipBomIfPresent(reader);
             return parse(reader, path.toString());
         } catch (IOException e) {
+            log.error("failed to read fare file: {}", path, e);
             throw new InputFileException("Failed to read fare file: " + path, e);
         }
     }
@@ -71,6 +76,7 @@ public final class FareTableLoader {
         try (Reader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
             return parse(reader, "classpath:" + BUNDLED_RESOURCE);
         } catch (IOException e) {
+            log.error("failed to read bundled fares.csv from classpath", e);
             throw new FareTableException("Failed to read bundled fares.csv", e);
         }
     }

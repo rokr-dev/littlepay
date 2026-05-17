@@ -29,6 +29,7 @@ public class Main {
         try {
             cliArgs = Cli.parse(args);
         } catch (CliUsageException e) {
+            log.error("CLI usage error: {}", e.getMessage());
             System.err.println(e.getMessage());
             System.exit(e.getExitCode()); // exit code 2
             return;
@@ -62,9 +63,11 @@ public class Main {
             );
             app.run();
         } catch (LittlepayException e) {
+            log.error("pipeline error (exit {}): {}", e.getExitCode(), e.getMessage(), e);
             System.err.println(e.getMessage());
             System.exit(e.getExitCode());
         } catch (IOException | RuntimeException e) {
+            log.error("unexpected error", e);
             System.err.println("Unexpected error: " + e.getMessage());
             System.exit(1);
         }

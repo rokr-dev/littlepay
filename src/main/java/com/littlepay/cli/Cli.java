@@ -1,6 +1,8 @@
 package com.littlepay.cli;
 
 import com.littlepay.exceptions.CliUsageException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Hand-rolled CLI argument parser. No third-party CLI library.
@@ -9,6 +11,8 @@ import com.littlepay.exceptions.CliUsageException;
  *   [--fares &lt;path&gt;] [--duplicate-window-seconds &lt;N&gt;] [-h|--help]
  */
 public class Cli {
+
+    private static final Logger log = LoggerFactory.getLogger(Cli.class);
 
     private static final String USAGE =
             "usage: --input <path> --output <path>"
@@ -27,6 +31,7 @@ public class Cli {
      */
     public static CliArgs parse(String[] args) {
         if (args.length == 0) {
+            log.warn("CLI invoked with no arguments");
             System.err.println(USAGE);
             throw new CliUsageException("usage: no arguments provided — " + USAGE);
         }
@@ -65,6 +70,7 @@ public class Cli {
                 try {
                     duplicateWindowSeconds = Integer.parseInt(windowVal);
                 } catch (NumberFormatException e) {
+                    log.warn("invalid --duplicate-window-seconds value: '{}'", windowVal, e);
                     System.err.println(USAGE);
                     throw new CliUsageException(
                             "--duplicate-window-seconds requires an integer, got: '" + windowVal + "'");
@@ -74,10 +80,12 @@ public class Cli {
         }
 
         if (inputPath == null) {
+            log.warn("CLI invoked without required --input flag");
             System.err.println(USAGE);
             throw new CliUsageException("usage: missing required flag --input — " + USAGE);
         }
         if (outputPath == null) {
+            log.warn("CLI invoked without required --output flag");
             System.err.println(USAGE);
             throw new CliUsageException("usage: missing required flag --output — " + USAGE);
         }
