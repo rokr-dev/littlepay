@@ -30,13 +30,19 @@ import org.slf4j.LoggerFactory;
  *   <li>Sort each bucket: DateTimeUTC asc, tap ID asc (deterministic tiebreak).</li>
  *   <li>Run a two-state machine per bucket:
  *     <ul>
- *       <li><b>waiting</b> — no active ON held.</li>
- *       <li><b>onHeld(prev)</b> — an ON tap is held, waiting for its OFF.</li>
+ *       <li><b>Waiting</b> — no active ON held.</li>
+ *       <li><b>OnHeld(tap)</b> — an ON tap is held, waiting for its OFF.</li>
  *     </ul>
  *   </li>
  * </ol>
  */
 public final class StateMachineTripMatcher implements TripMatcher {
+
+    private sealed interface TripState permits TripState.Waiting, TripState.OnHeld {
+        record Waiting() implements TripState {}
+
+        record OnHeld(Tap tap) implements TripState {}
+    }
 
     private static final Logger log = LoggerFactory.getLogger(StateMachineTripMatcher.class);
     private static final Money ZERO_AUD = Money.of(BigDecimal.ZERO, Currency.getInstance("AUD"));
@@ -74,46 +80,48 @@ public final class StateMachineTripMatcher implements TripMatcher {
 
     private List<Trip> processBucket(List<Tap> sortedTaps) {
         List<Trip> trips = new ArrayList<>();
-        Tap heldOn = null; // state: null = waiting, non-null = onHeld
+        TripState state = new TripState.Waiting();
 
         for (Tap tap : sortedTaps) {
             if (tap.tapType() == TapType.ON) {
-                if (heldOn == null) {
+                if (state instanceof TripState.Waiting()) {
                     // waiting → onHeld
-                    heldOn = tap;
+                    state = new TripState.OnHeld(tap);
                 } else {
-                    // onHeld + new ON
-                    long gapSecs = ChronoUnit.SECONDS.between(heldOn.dateTime(), tap.dateTime());
+                    TripState.OnHeld onHeld = (TripState.OnHeld) state;
+                    Tap held = onHeld.tap(); // onHeld + new ON
+                    long gapSecs = ChronoUnit.SECONDS.between(held.dateTime(), tap.dateTime());
                     if (gapSecs <= duplicateWindowSecs) {
                         // within window → drop new ON (hardware misfire)
                         log.warn("Duplicate ON dropped within window: tap id={} pan={} bus={}",
                                 tap.id(), tap.pan().masked(), tap.busId());
-                        // remain in onHeld(prev) — do NOT update heldOn
+                        // remain in OnHeld(held) — do NOT update state
                     } else {
                         // outside window → emit prev as INCOMPLETE, hold new
-                        trips.add(makeIncomplete(heldOn));
-                        heldOn = tap;
+                        trips.add(makeIncomplete(held));
+                        state = new TripState.OnHeld(tap);
                     }
                 }
             } else { // TapType.OFF
-                if (heldOn == null) {
+                if (state instanceof TripState.Waiting()) {
                     // waiting + OFF → UNMATCHED_OFF
                     trips.add(makeUnmatchedOff(tap));
                 } else {
-                    // onHeld + OFF
-                    if (heldOn.stopId().equals(tap.stopId())) {
-                        trips.add(makeCancelled(heldOn, tap));
+                    TripState.OnHeld onHeld = (TripState.OnHeld) state;
+                    Tap held = onHeld.tap(); // onHeld + OFF
+                    if (held.stopId().equals(tap.stopId())) {
+                        trips.add(makeCancelled(held, tap));
                     } else {
-                        trips.add(makeCompleted(heldOn, tap));
+                        trips.add(makeCompleted(held, tap));
                     }
-                    heldOn = null; // back to waiting
+                    state = new TripState.Waiting(); // back to waiting
                 }
             }
         }
 
         // End of bucket — flush any remaining held ON as INCOMPLETE
-        if (heldOn != null) {
-            trips.add(makeIncomplete(heldOn));
+        if (state instanceof TripState.OnHeld(Tap held)) {
+            trips.add(makeIncomplete(held));
         }
 
         return trips;
